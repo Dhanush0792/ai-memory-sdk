@@ -51,6 +51,3 @@ async def startup():
     db = Database()
     db.init_schema()
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
