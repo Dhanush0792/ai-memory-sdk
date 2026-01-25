@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Memory SDK</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Memory SDK</h1>
+            <p>Persistent memory for AI applications</p>
+        </header>
+
+        <!-- Configuration (collapsed by default) -->
+        <section class="config-section">
+            <button class="toggle-btn" onclick="toggleConfig()">Configuration</button>
+            <div id="configForm" class="config-form" style="display: none;">
+                <div class="form-group">
+                    <label for="apiKey">API Key</label>
+                    <input type="password" id="apiKey" placeholder="dev-key-12345">
+                </div>
+                <div class="form-group">
+                    <label for="userId">User ID</label>
+                    <input type="text" id="userId" placeholder="user-123">
+                </div>
+                <div class="form-group">
+                    <label for="apiUrl">API URL</label>
+                    <input type="text" id="apiUrl" value="http://localhost:8001">
+                </div>
+                <button onclick="saveConfig()">Save configuration</button>
+            </div>
+        </section>
+
+        <!-- Main content (hidden until configured) -->
+        <div id="mainContent" style="display: none;">
+
+            <!-- Add Memory (PRIMARY) -->
+            <section class="add-memory-section">
+                <h2>Add Memory</h2>
+                <textarea id="memoryContent" placeholder="Enter memory content..." rows="4"></textarea>
+                <div class="form-row">
+                    <select id="memoryType">
+                        <option value="fact">Fact</option>
+                        <option value="preference">Preference</option>
+                        <option value="event">Event</option>
+                    </select>
+                    <button onclick="addMemory()">Add memory</button>
+                </div>
+                <div id="addMemoryError" class="error-message"></div>
+            </section>
+
+            <!-- Chat (SECONDARY) -->
+            <section class="chat-section">
+                <h2>Chat</h2>
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input-row">
+                    <input type="text" id="chatInput" placeholder="Type a message..."
+                        onkeypress="handleChatKeyPress(event)">
+                    <button onclick="sendChat()">Send</button>
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="autoSave" checked>
+                    Automatically extract memories <span class="note">(experimental)</span>
+                </label>
+                <div id="chatError" class="error-message"></div>
+            </section>
+
+            <!-- Memory List (CORE) -->
+            <section class="memory-list-section">
+                <h2>Memory List</h2>
+                <table id="memoryTable">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Content</th>
+                            <th>Created at</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memoryTableBody">
+                        <tr>
+                            <td colspan="4" class="empty-message">No memories yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Stats (LOW PRIORITY) -->
+            <section class="stats-section">
+                <p id="statsText">Total memories: 0<br>Facts: 0<br>Preferences: 0<br>Events: 0</p>
+            </section>
+
+            <!-- Privacy & Data -->
+            <section class="privacy-section">
+                <h2>Privacy & Data</h2>
+                <button onclick="exportData()">Export data</button>
+                <button onclick="deleteAllData()" class="danger-btn">Delete all data</button>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="static/app.js"></script>
+</body>
+
+</html>

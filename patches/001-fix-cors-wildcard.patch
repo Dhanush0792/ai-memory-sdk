@@ -1,0 +1,31 @@
+--- a/truthkeeper_api.py
++++ b/truthkeeper_api.py
+@@ -30,13 +30,24 @@ app = FastAPI(
+     redoc_url="/redoc"
+ )
+ 
+-# CORS
++# CORS - SECURITY FIX: Restrict to specific origins
++ALLOWED_ORIGINS = [
++    "https://yourdomain.com",
++    "https://app.yourdomain.com",
++]
++
++# Allow localhost in development only
++if os.getenv("APP_ENV") == "development":
++    ALLOWED_ORIGINS.extend(["http://localhost:3000", "http://localhost:8000"])
++
+ app.add_middleware(
+     CORSMiddleware,
+-    allow_origins=["*"],
++    allow_origins=ALLOWED_ORIGINS,  # FIXED: No longer wildcard
+     allow_credentials=True,
+-    allow_methods=["*"],
+-    allow_headers=["*"],
++    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
++    allow_headers=["Content-Type", "X-API-Key", "Authorization"],
++    expose_headers=["X-Request-ID"],
++    max_age=3600,
+ )
+ 
+ # Usage tracking middleware
