@@ -15,10 +15,9 @@ class Database:
     
     def __init__(self):
         """Initialize database connection"""
-        self.conn_string = os.getenv(
-            "DATABASE_URL",
-            "postgresql://postgres:postgres@localhost:5432/memory_db"
-        )
+        self.conn_string = os.getenv("DATABASE_URL")
+        if not self.conn_string:
+            self.conn_string = "postgresql://postgres:postgres@localhost:5432/memory_db"
         # Initialize encryption service
         try:
             self.encryption = EncryptionService()
@@ -28,8 +27,10 @@ class Database:
     
     def _get_conn(self):
         """Get database connection from pool"""
-        # Simple connection - psycopg3 handles pooling internally with context manager
-        return psycopg.connect(self.conn_string)
+        try:
+            return psycopg.connect(self.conn_string)
+        except psycopg.OperationalError as e:
+            raise ConnectionError(f"Failed to connect to database: {e}") from e
     
     def init_schema(self):
         """Initialize database schema"""

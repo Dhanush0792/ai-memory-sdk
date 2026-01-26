@@ -48,6 +48,10 @@ async def health():
 # Initialize database on startup
 @app.on_event("startup")
 async def startup():
-    db = Database()
-    db.init_schema()
+    if os.getenv("DATABASE_URL"):
+        db = Database()
+        db.init_schema()
+    else:
+        import logging
+        logging.warning("DATABASE_URL not set - skipping database initialization")
 
