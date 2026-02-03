@@ -4,107 +4,312 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Memory SDK</title>
-    <link rel="stylesheet" href="static/style.css">
+    <title>AI Memory SDK - Persistent Memory for AI Applications</title>
+    <meta name="description"
+        content="Give your AI applications persistent memory. Store facts, preferences, and context across sessions.">
+    <link rel="stylesheet" href="static/css/style.css">
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <h1>AI Memory SDK</h1>
-            <p>Persistent memory for AI applications</p>
-        </header>
+    <!-- Floating Memory Nodes Background -->
+    <div class="memory-space" id="memorySpace">
+        <svg class="floating-nodes" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+            <!-- Memory Nodes -->
+            <g class="node-group" data-depth="1">
+                <circle class="memory-node" cx="150" cy="120" r="4" />
+                <circle class="memory-node" cx="280" cy="200" r="3" />
+                <circle class="memory-node" cx="420" cy="150" r="5" />
+                <circle class="memory-node" cx="580" cy="180" r="4" />
+                <circle class="memory-node" cx="720" cy="140" r="3" />
+                <circle class="memory-node" cx="880" cy="190" r="4" />
+                <circle class="memory-node" cx="1050" cy="160" r="5" />
+            </g>
+            <g class="node-group" data-depth="2">
+                <circle class="memory-node" cx="200" cy="350" r="3" />
+                <circle class="memory-node" cx="380" cy="420" r="4" />
+                <circle class="memory-node" cx="550" cy="380" r="3" />
+                <circle class="memory-node" cx="750" cy="440" r="5" />
+                <circle class="memory-node" cx="950" cy="400" r="4" />
+            </g>
+            <g class="node-group" data-depth="3">
+                <circle class="memory-node" cx="120" cy="580" r="4" />
+                <circle class="memory-node" cx="320" cy="640" r="3" />
+                <circle class="memory-node" cx="520" cy="600" r="4" />
+                <circle class="memory-node" cx="720" cy="660" r="5" />
+                <circle class="memory-node" cx="920" cy="620" r="3" />
+                <circle class="memory-node" cx="1100" cy="680" r="4" />
+            </g>
 
-        <!-- Configuration (collapsed by default) -->
-        <section class="config-section">
-            <button class="toggle-btn" onclick="toggleConfig()">Configuration</button>
-            <div id="configForm" class="config-form" style="display: none;">
-                <div class="form-group">
-                    <label for="apiKey">API Key</label>
-                    <input type="password" id="apiKey" placeholder="dev-key-12345">
-                </div>
-                <div class="form-group">
-                    <label for="userId">User ID</label>
-                    <input type="text" id="userId" placeholder="user-123">
-                </div>
-                <div class="form-group">
-                    <label for="apiUrl">API URL</label>
-                    <input type="text" id="apiUrl" value="http://localhost:8001">
-                </div>
-                <button onclick="saveConfig()">Save configuration</button>
-            </div>
-        </section>
-
-        <!-- Main content (hidden until configured) -->
-        <div id="mainContent" style="display: none;">
-
-            <!-- Add Memory (PRIMARY) -->
-            <section class="add-memory-section">
-                <h2>Add Memory</h2>
-                <textarea id="memoryContent" placeholder="Enter memory content..." rows="4"></textarea>
-                <div class="form-row">
-                    <select id="memoryType">
-                        <option value="fact">Fact</option>
-                        <option value="preference">Preference</option>
-                        <option value="event">Event</option>
-                    </select>
-                    <button onclick="addMemory()">Add memory</button>
-                </div>
-                <div id="addMemoryError" class="error-message"></div>
-            </section>
-
-            <!-- Chat (SECONDARY) -->
-            <section class="chat-section">
-                <h2>Chat</h2>
-                <div class="chat-messages" id="chatMessages"></div>
-                <div class="chat-input-row">
-                    <input type="text" id="chatInput" placeholder="Type a message..."
-                        onkeypress="handleChatKeyPress(event)">
-                    <button onclick="sendChat()">Send</button>
-                </div>
-                <label class="checkbox-label">
-                    <input type="checkbox" id="autoSave" checked>
-                    Automatically extract memories <span class="note">(experimental)</span>
-                </label>
-                <div id="chatError" class="error-message"></div>
-            </section>
-
-            <!-- Memory List (CORE) -->
-            <section class="memory-list-section">
-                <h2>Memory List</h2>
-                <table id="memoryTable">
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Content</th>
-                            <th>Created at</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="memoryTableBody">
-                        <tr>
-                            <td colspan="4" class="empty-message">No memories yet</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
-
-            <!-- Stats (LOW PRIORITY) -->
-            <section class="stats-section">
-                <p id="statsText">Total memories: 0<br>Facts: 0<br>Preferences: 0<br>Events: 0</p>
-            </section>
-
-            <!-- Privacy & Data -->
-            <section class="privacy-section">
-                <h2>Privacy & Data</h2>
-                <button onclick="exportData()">Export data</button>
-                <button onclick="deleteAllData()" class="danger-btn">Delete all data</button>
-            </section>
-
-        </div>
+            <!-- Connecting Lines -->
+            <g class="connection-lines">
+                <line x1="150" y1="120" x2="280" y2="200" />
+                <line x1="280" y1="200" x2="420" y2="150" />
+                <line x1="420" y1="150" x2="580" y2="180" />
+                <line x1="580" y1="180" x2="720" y2="140" />
+                <line x1="720" y1="140" x2="880" y2="190" />
+                <line x1="200" y1="350" x2="380" y2="420" />
+                <line x1="380" y1="420" x2="550" y2="380" />
+                <line x1="550" y1="380" x2="750" y2="440" />
+                <line x1="280" y1="200" x2="200" y2="350" />
+                <line x1="580" y1="180" x2="550" y2="380" />
+                <line x1="720" y1="140" x2="750" y2="440" />
+            </g>
+        </svg>
     </div>
 
-    <script src="static/app.js"></script>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 class="hero-title">AI Memory SDK</h1>
+            <p class="hero-subtitle">Persistent memory for AI applications</p>
+            <div class="hero-problem">
+                <p>Large language models forget conversations</p>
+                <p>Context windows are limited and expensive</p>
+                <p>Developers rebuild memory systems repeatedly</p>
+            </div>
+            <p class="hero-tagline">AI Memory SDK provides persistent, structured memory for long-running AI systems.
+            </p>
+            <p class="hero-anchor">Memory should be a first-class system, not an afterthought.</p>
+            <div class="hero-cta">
+                <a href="https://ai-memory-sdk.onrender.com/docs" class="btn btn-primary">Get Started</a>
+                <a href="#how-it-works" class="btn btn-secondary">How It Works</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Who Is This For? -->
+    <section class="audience">
+        <div class="container">
+            <h2 class="section-title">Who Is This For?</h2>
+            <div class="audience-list">
+                <p class="audience-item">AI product builders</p>
+                <p class="audience-item">Chatbot and assistant developers</p>
+                <p class="audience-item">Agent frameworks</p>
+                <p class="audience-item">SaaS applications using LLMs</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How Memory Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How Memory Works</h2>
+            <div class="process-flow">
+                <div class="process-step" data-step="1">
+                    <div class="step-node">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </div>
+                    <h3>User Input</h3>
+                    <p>AI receives conversation or data</p>
+                    <p>Extract meaningful facts from conversations</p>
+                </div>
+
+                <div class="flow-connector">
+                    <svg viewBox="0 0 100 2" preserveAspectRatio="none">
+                        <line x1="0" y1="1" x2="100" y2="1" stroke="url(#gradient)" stroke-width="2" />
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#6366F1;stop-opacity:0.3" />
+                                <stop offset="100%" style="stop-color:#22D3EE;stop-opacity:0.3" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+
+                <div class="process-step" data-step="2">
+                    <div class="step-node">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M12 1v6m0 6v6m-9-9h6m6 0h6"></path>
+                        </svg>
+                    </div>
+                    <h3>Memory Extraction</h3>
+                    <p>Facts and context automatically extracted</p>
+                    <p>Store memory with metadata and timestamps</p>
+                </div>
+
+                <div class="flow-connector">
+                    <svg viewBox="0 0 100 2" preserveAspectRatio="none">
+                        <line x1="0" y1="1" x2="100" y2="1" stroke="url(#gradient)" stroke-width="2" />
+                    </svg>
+                </div>
+
+                <div class="process-step" data-step="3">
+                    <div class="step-node">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                        </svg>
+                    </div>
+                    <h3>Context Retrieval</h3>
+                    <p>Relevant memories injected into responses</p>
+                    <p>Inject only relevant memory back into prompts</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Memory Visualization Demo -->
+    <section class="memory-demo" id="demo">
+        <div class="container">
+            <h2 class="section-title">See Memory in Action</h2>
+            <div class="demo-container">
+                <div class="demo-input">
+                    <div class="demo-label">User Message</div>
+                    <div class="demo-content">
+                        <p>"I work at a fintech startup"</p>
+                    </div>
+                </div>
+
+                <div class="demo-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </div>
+
+                <div class="demo-output">
+                    <div class="demo-label">Stored Memory</div>
+                    <div class="demo-content">
+                        <div class="memory-item">
+                            <span class="memory-key">Job:</span>
+                            <span class="memory-value">Fintech startup</span>
+                        </div>
+                        <div class="memory-item">
+                            <span class="memory-key">Domain:</span>
+                            <span class="memory-value">Finance</span>
+                        </div>
+                        <div class="memory-item">
+                            <span class="memory-key">Confidence:</span>
+                            <span class="memory-value">High</span>
+                        </div>
+                        <div class="memory-item">
+                            <span class="memory-key">Context tag:</span>
+                            <span class="memory-value">Career</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What Makes This Different? -->
+    <section class="differentiators">
+        <div class="container">
+            <h2 class="section-title">What Makes This Different?</h2>
+            <div class="diff-list">
+                <p>Temporal memory, not just embeddings</p>
+                <p>GDPR-ready delete and export</p>
+                <p>Structured extraction instead of raw logs</p>
+                <p>SDK-first, backend-agnostic design</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Built for Production</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2v20M2 12h20"></path>
+                            <circle cx="12" cy="12" r="4"></circle>
+                        </svg>
+                    </div>
+                    <h3>Persistent Memory</h3>
+                    <p>Memories persist across sessions and conversations</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <polyline points="17 11 19 13 23 9"></polyline>
+                        </svg>
+                    </div>
+                    <h3>User Scoped</h3>
+                    <p>Isolated memory per user or session</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <h3>GDPR Compliant</h3>
+                    <p>Export and delete user data on demand</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="16 18 22 12 16 6"></polyline>
+                            <polyline points="8 6 2 12 8 18"></polyline>
+                        </svg>
+                    </div>
+                    <h3>API First</h3>
+                    <p>Clean REST API with comprehensive documentation</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path
+                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                            </path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                    </div>
+                    <h3>Flexible Deployment</h3>
+                    <p>Works locally or in the cloud with PostgreSQL</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                        </svg>
+                    </div>
+                    <h3>LLM Powered</h3>
+                    <p>Automatic memory extraction using OpenAI or Anthropic</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Try It Now -->
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="section-title">Try It Now</h2>
+            <p class="cta-description">Live API available. Explore endpoints, schemas, and try requests instantly.</p>
+            <div class="cta-button-wrapper">
+                <a href="https://ai-memory-sdk.onrender.com/docs" class="btn btn-primary">Explore API Docs</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">AI Memory SDK</div>
+                <div class="footer-links">
+                    <a href="https://ai-memory-sdk.onrender.com/docs">API Documentation</a>
+                    <a href="https://github.com/Dhanush0792/ai-memory-sdk">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="static/js/app.js"></script>
 </body>
 
 </html>

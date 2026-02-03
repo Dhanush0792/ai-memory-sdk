@@ -1,8 +1,40 @@
 # AI Memory SDK
 
-**Production-ready AI memory management system with LLM-powered extraction.**
+**Production-ready AI memory management system with clean backend/frontend separation.**
 
-A clean, minimal, and stable FastAPI-based SDK for storing and retrieving durable user memory using PostgreSQL and LLMs (OpenAI or Anthropic).
+A FastAPI-based backend with static HTML frontend for storing and retrieving durable user memory using PostgreSQL and LLMs (OpenAI or Anthropic).
+
+---
+
+## 🏗️ Architecture
+
+This repository is organized into three main components:
+
+```
+memory/
+├── backend/          # FastAPI JSON API (deployed on Render)
+├── frontend/         # Static HTML/CSS/JS (deployed on Netlify)
+└── sdk/              # Python SDK for programmatic access
+```
+
+### Backend (Render)
+- **Location**: `/backend/`
+- **Type**: FastAPI JSON API
+- **Deployment**: Render
+- **Documentation**: See [backend/README.md](backend/README.md)
+- **API Docs**: Available at `/docs` (Swagger UI)
+
+### Frontend (Netlify)
+- **Location**: `/frontend/`
+- **Type**: Static HTML/CSS/JavaScript
+- **Deployment**: Netlify
+- **Documentation**: See [frontend/README.md](frontend/README.md)
+- **No build step required**
+
+### SDK (Python)
+- **Location**: `/sdk/`
+- **Type**: Python client library
+- **Usage**: Programmatic access to the API
 
 ---
 
@@ -13,212 +45,139 @@ A clean, minimal, and stable FastAPI-based SDK for storing and retrieving durabl
 - 🔌 **Clean REST API** - Simple, well-documented HTTP endpoints
 - 🎯 **Multi-Provider AI** - Support for OpenAI and Anthropic
 - 📊 **Memory Statistics** - Track memory usage and types
-- ⏰ **Expiration Support** - Optional TTL for memories
+- 🔒 **Security** - Authentication, rate limiting, encryption
+- 🌐 **GDPR Compliant** - Data export and deletion endpoints
 - 🪟 **Windows Compatible** - Clean installation without C compilers
-
----
-
-## 🏗️ Architecture
-
-```
-app/
-├── main.py                    # FastAPI bootstrap
-├── api/
-│   └── routes.py             # HTTP layer only
-├── memory/
-│   ├── sdk.py                # Business logic
-│   └── extraction.py         # LLM memory extraction
-├── assistant/
-│   └── ai_client.py          # LLM client abstraction
-└── database/
-    └── connection.py         # PostgreSQL access layer
-```
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Backend (Local Development)
 
-- Python 3.9+
-- PostgreSQL 12+
-- OpenAI or Anthropic API key
+1. **Navigate to backend directory**:
+```bash
+cd backend
+```
 
-### 1. Install Dependencies
-
-```powershell
-# Create virtual environment
-python -m venv venv
-.\venv\Scripts\activate
-
-# Install packages
+2. **Install dependencies**:
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment
-
-```powershell
-# Copy example environment file
-copy .env.example .env
-
-# Edit .env and set:
-# - DATABASE_URL
-# - AI_PROVIDER (openai or anthropic)
-# - OPENAI_API_KEY or ANTHROPIC_API_KEY
+3. **Configure environment**:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
-### 3. Initialize Database
-
-```powershell
-# Create database
-psql -U postgres -c "CREATE DATABASE memory_db;"
-
-# Run schema
-python scripts/init_db.py
+4. **Run the server**:
+```bash
+uvicorn api.main:app --host 0.0.0.0 --port 10000
 ```
 
-### 4. Start Server
+Backend will be available at `http://localhost:10000`
 
-```powershell
-# Development mode
-uvicorn app.main:app --reload
+See [backend/README.md](backend/README.md) for detailed setup instructions.
 
-# Production mode
-uvicorn app.main:app --host 0.0.0.0 --port 8000
+### Frontend (Local Development)
+
+1. **Navigate to frontend directory**:
+```bash
+cd frontend
 ```
 
-### 5. Run QA Tests
+2. **Serve with any static server**:
+```bash
+# Python
+python -m http.server 8080
 
-```powershell
-python scripts/qa_test.py
+# Or use VS Code Live Server extension
 ```
+
+3. **Configure in browser**:
+- Click "Configuration"
+- Set API URL to `http://localhost:10000`
+- Set API Key and User ID
+
+See [frontend/README.md](frontend/README.md) for detailed setup instructions.
 
 ---
 
 ## 📡 API Endpoints
 
-### Health Check
+### Core
+- `GET /` - Status check (returns JSON)
+- `GET /health` - Health check
+- `GET /docs` - Swagger API documentation
 
-```bash
-GET /health
-```
+### Memory Management
+- `POST /api/v1/memory` - Add memory
+- `GET /api/v1/memory` - List memories
+- `DELETE /api/v1/memory/{memory_id}` - Delete memory
+- `GET /api/v1/memory/stats` - Get memory statistics
 
-### Chat with Memory
+### Chat
+- `POST /api/v1/chat` - Chat with memory context
 
-```bash
-POST /api/v1/chat
-Content-Type: application/json
+### GDPR
+- `GET /api/v1/gdpr/export` - Export user data
+- `DELETE /api/v1/gdpr/delete` - Delete all user data
 
-{
-  "user_id": "user123",
-  "message": "My name is Alice",
-  "auto_save": true
-}
-```
+---
 
-### Extract Memory Only
+## 🚢 Deployment
 
-```bash
-POST /api/v1/memory/extract?user_id=user123&message=I%20love%20pizza
-```
+### Backend (Render)
 
-### Retrieve Memories
+1. **Connect repository** to Render
+2. **Set root directory**: `backend`
+3. **Configure environment variables** in Render dashboard
+4. **Deploy** - Render will use `Procfile` and `runtime.txt`
 
-```bash
-GET /api/v1/memory/{user_id}?limit=10
-GET /api/v1/memory/{user_id}?memory_type=fact
-GET /api/v1/memory/{user_id}?key=name
-```
+Backend URL: `https://ai-memory-sdk.onrender.com`
 
-### Delete Memories
+### Frontend (Netlify)
 
-```bash
-DELETE /api/v1/memory/{user_id}
-```
+1. **Connect repository** to Netlify
+2. **Set base directory**: `frontend`
+3. **Set publish directory**: `frontend`
+4. **Build command**: _(leave empty)_
+5. **Deploy**
 
-### Memory Statistics
-
-```bash
-GET /api/v1/memory/{user_id}/stats
-```
+Frontend will automatically connect to production backend.
 
 ---
 
 ## 💻 SDK Usage
 
 ```python
-from app.memory.sdk import MemorySDK
-from app.memory.extraction import MemoryExtractor
-from app.assistant.ai_client import create_ai_client
+from sdk.client import MemorySDKClient
 
-# Initialize SDK
-sdk = MemorySDK()
-
-# Add memory manually
-sdk.add_memory(
+# Initialize client
+client = MemorySDKClient(
+    api_key="your-api-key",
     user_id="user123",
-    memory_type="fact",
-    key="name",
-    value="Alice"
+    base_url="https://ai-memory-sdk.onrender.com"
+)
+
+# Add memory
+client.add_memory(
+    content="I love pizza",
+    memory_type="preference"
 )
 
 # Retrieve memories
-memories = sdk.retrieve_memory(user_id="user123")
+memories = client.get_memories(limit=10)
 
-# Extract memories from text
-extractor = MemoryExtractor()
-extracted = extractor.extract("I love pizza and hate broccoli")
+# Chat with memory context
+response = client.chat("What do I like to eat?")
 
-# Get statistics
-stats = sdk.get_memory_stats(user_id="user123")
+# Export data (GDPR)
+data = client.export_data()
 
-# Delete all memories
-sdk.delete_all_memory(user_id="user123")
-```
-
----
-
-## 🧪 Testing
-
-### Manual Testing with cURL
-
-```powershell
-# Health check
-curl http://localhost:8000/health
-
-# Extract memory
-curl -X POST "http://localhost:8000/api/v1/memory/extract?user_id=alice&message=My%20name%20is%20Alice"
-
-# Retrieve memories
-curl http://localhost:8000/api/v1/memory/alice
-
-# Chat
-curl -X POST http://localhost:8000/api/v1/chat `
-  -H "Content-Type: application/json" `
-  -d '{\"user_id\":\"alice\",\"message\":\"What is my name?\",\"auto_save\":false}'
-
-# Delete memories
-curl -X DELETE http://localhost:8000/api/v1/memory/alice
-```
-
-### Automated QA Tests
-
-```powershell
-python scripts/qa_test.py
-```
-
-Expected output:
-```
-✓ Health Check - PASS
-✓ Extract Memory - Name - PASS
-✓ Extract Memory - Preference - PASS
-✓ Retrieve Memories - PASS
-✓ Chat with Memory - PASS
-✓ Memory Statistics - PASS
-✓ Delete All Memories - PASS
-✓ Verify Deletion - PASS
-
-Results: 8/8 tests passed
+# Delete all data (GDPR)
+client.delete_all_data()
 ```
 
 ---
@@ -230,11 +189,10 @@ CREATE TABLE memories (
     id UUID PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL,
     memory_type VARCHAR(50) NOT NULL,
-    key VARCHAR(255) NOT NULL,
-    value JSONB NOT NULL,
+    content TEXT NOT NULL,
+    metadata JSONB,
     created_at TIMESTAMP WITH TIME ZONE,
-    expires_at TIMESTAMP WITH TIME ZONE,
-    metadata JSONB
+    updated_at TIMESTAMP WITH TIME ZONE
 );
 ```
 
@@ -242,93 +200,93 @@ CREATE TABLE memories (
 - `fact` - Concrete facts (name, age, location, job)
 - `preference` - Likes, dislikes, preferences
 - `event` - Past or future events, experiences
-- `context` - General context or background
 
 ---
 
 ## 🔧 Configuration
 
-### Environment Variables
+### Backend Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DATABASE_URL` | Yes | - | PostgreSQL connection string |
-| `AI_PROVIDER` | No | `openai` | AI provider (`openai` or `anthropic`) |
-| `OPENAI_API_KEY` | If using OpenAI | - | OpenAI API key |
-| `OPENAI_MODEL` | No | `gpt-4-turbo-preview` | OpenAI model |
-| `ANTHROPIC_API_KEY` | If using Anthropic | - | Anthropic API key |
-| `ANTHROPIC_MODEL` | No | `claude-3-sonnet-20240229` | Anthropic model |
+See [backend/.env.example](backend/.env.example) for all required variables:
+
+- `DATABASE_URL` - PostgreSQL connection string (required)
+- `ENCRYPTION_KEY` - Fernet encryption key (required)
+- `API_KEY` - API authentication key (required)
+- `OPENAI_API_KEY` - OpenAI API key (optional)
+- `CORS_ORIGINS` - Allowed CORS origins (default: `*`)
+
+### Frontend Configuration
+
+Configure via UI:
+- **API Key**: Your backend API key
+- **User ID**: Your user identifier
+- **API URL**: Backend URL (default: production)
 
 ---
 
 ## 📦 Dependencies
 
-**Core:**
-- `fastapi` - Web framework
-- `uvicorn` - ASGI server
-- `pydantic` - Data validation
-- `psycopg[binary]` - PostgreSQL driver (v3, Windows-compatible)
+### Backend
+- `fastapi==0.109.0` - Web framework
+- `uvicorn==0.27.0` - ASGI server
+- `pydantic>=2.5,<3.0` - Data validation
+- `psycopg[binary]` - PostgreSQL driver
+- `openai==1.10.0` - OpenAI client
+- `cryptography==42.0.0` - Encryption
+- `tiktoken==0.5.2` - Token counting
 
-**AI:**
-- `openai` - OpenAI client
-- `anthropic` - Anthropic client
-
-**Utilities:**
-- `python-dotenv` - Environment management
-- `httpx` - HTTP client
-
-**No vector dependencies** - Works without `pgvector` or `voyageai`
+### Frontend
+- No dependencies - Pure HTML/CSS/JavaScript
 
 ---
 
-## 🚨 Known Limitations
+## 🛠️ Project Structure
 
-1. **No Semantic Search** - This version does not include vector embeddings or semantic search. Memories are retrieved by exact user_id, type, or key matching.
-
-2. **Single Database** - No connection pooling across multiple databases.
-
-3. **No Authentication** - API endpoints are not authenticated. Add your own auth layer for production.
-
-4. **Memory Extraction Quality** - Depends on LLM quality. May miss subtle context or extract incorrectly.
-
-5. **No Rate Limiting** - Add rate limiting middleware for production use.
-
-6. **Synchronous Database** - Uses synchronous psycopg. For high concurrency, consider async drivers.
+```
+memory/
+├── backend/
+│   ├── api/
+│   │   ├── main.py              # FastAPI app entry point
+│   │   ├── routes.py            # API route definitions
+│   │   ├── database.py          # Database operations
+│   │   ├── auth.py              # Authentication
+│   │   ├── encryption.py        # Data encryption
+│   │   ├── rate_limiter.py      # Rate limiting
+│   │   └── services/
+│   │       ├── chat_service.py
+│   │       ├── llm_client.py
+│   │       └── memory_extractor.py
+│   ├── tests/                   # Backend tests
+│   ├── requirements.txt         # Python dependencies
+│   ├── runtime.txt             # Python version
+│   ├── Procfile                # Render start command
+│   └── README.md               # Backend documentation
+│
+├── frontend/
+│   ├── index.html              # Main HTML page
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── style.css       # Styles
+│   │   └── js/
+│   │       └── app.js          # Application logic
+│   └── README.md               # Frontend documentation
+│
+├── sdk/
+│   ├── client.py               # Python SDK client
+│   └── exceptions.py           # SDK exceptions
+│
+└── README.md                   # This file
+```
 
 ---
 
-## 🛠️ Troubleshooting
+## 🔒 Security Features
 
-### Database Connection Errors
-
-```powershell
-# Test PostgreSQL connection
-psql -U postgres -d memory_db -c "SELECT 1;"
-
-# Check DATABASE_URL format
-# postgresql://username:password@localhost:5432/database_name
-```
-
-### Import Errors
-
-```powershell
-# Ensure you're in the project root
-cd c:\Users\Desktop\Projects\memory
-
-# Activate virtual environment
-.\venv\Scripts\activate
-
-# Reinstall dependencies
-pip install -r requirements.txt
-```
-
-### API 500 Errors
-
-Check logs for:
-- Missing API keys
-- Database connection issues
-- Invalid memory types
-- Malformed requests
+- **API Key Authentication** - All endpoints require valid API key
+- **Rate Limiting** - Configurable rate limits per endpoint
+- **Data Encryption** - Memory content encrypted at rest
+- **CORS Protection** - Configurable allowed origins
+- **Audit Logging** - All operations logged with integrity checks
 
 ---
 
@@ -340,20 +298,20 @@ MIT License - Use freely in your projects.
 
 ## 🤝 Contributing
 
-This is a production-ready baseline. Contributions welcome:
+Contributions welcome! Areas for improvement:
 - Add vector search support
 - Implement async database layer
-- Add authentication
 - Improve memory extraction prompts
+- Add more LLM providers
 
 ---
 
 ## 📞 Support
 
-For issues or questions, check:
-1. This README
+For issues or questions:
+1. Check component-specific README ([backend](backend/README.md) or [frontend](frontend/README.md))
 2. API documentation at `/docs`
-3. QA test script for examples
+3. Open an issue on GitHub
 
 ---
 

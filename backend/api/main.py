@@ -4,10 +4,8 @@ from dotenv import load_dotenv
 load_dotenv()  # Load .env before database initialization
 
 import os
-from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from .routes import router
 from .database import Database
 from .rate_limiter import rate_limit_middleware
@@ -21,11 +19,13 @@ app = FastAPI(
 # Rate limiting middleware (FIRST - before CORS)
 app.middleware("http")(rate_limit_middleware)
 
-# CORS
-allowed_origins = os.getenv("CORS_ORIGINS", "*").split(",")
+# CORS - Environment-driven configuration
+cors_origins = os.getenv("CORS_ORIGINS", "")
+origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -34,11 +34,10 @@ app.add_middleware(
 # Routes
 app.include_router(router)
 
-# Serve frontend static files
-frontend_path = Path(__file__).parent.parent / "frontend"
-if frontend_path.exists():
-    app.mount("/static", StaticFiles(directory=str(frontend_path / "static")), name="static")
-    app.mount("/", StaticFiles(directory=str(frontend_path), html=True), name="frontend")
+# Root endpoint - JSON only (no frontend serving)
+@app.get("/")
+def root():
+    return {"status": "AI Memory SDK backend running"}
 
 # Health check
 @app.get("/health")
