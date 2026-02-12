@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: memory-db
+    environment:
+      POSTGRES_USER: memoryuser
+      POSTGRES_PASSWORD: memorypass
+      POSTGRES_DB: memorydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U memoryuser" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - memory-network
+
+  # Redis for distributed rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: memory-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - memory-network
+
+  # Application (can scale horizontally)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: memory-app
+    environment:
+      DATABASE_URL: postgresql://memoryuser:memorypass@db:5432/memorydb
+      REDIS_URL: redis://redis:6379/0
+      API_KEY: ${API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      EXTRACTION_PROVIDER: ${EXTRACTION_PROVIDER:-openai}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      METRICS_ENABLED: "true"
+      STRUCTURED_LOGGING: "true"
+      ENVIRONMENT: production
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - memory-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+volumes:
+  postgres_data:
+  redis_data:
+
+
+networks:
+  memory-network:
+    driver: bridge

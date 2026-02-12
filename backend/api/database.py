@@ -17,7 +17,10 @@ class Database:
         """Initialize database connection"""
         self.conn_string = os.getenv("DATABASE_URL")
         if not self.conn_string:
-            self.conn_string = "postgresql://postgres:postgres@localhost:5432/memory_db"
+            raise ValueError(
+                "DATABASE_URL environment variable not set. "
+                "Please set DATABASE_URL=postgresql://user:password@host:port/database"
+            )
         # Initialize encryption service
         try:
             self.encryption = EncryptionService()
@@ -39,16 +42,28 @@ class Database:
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS memories (
                         id TEXT PRIMARY KEY,
+                        owner_id TEXT NOT NULL,
                         user_id TEXT NOT NULL,
                         content TEXT NOT NULL,
-                        memory_type TEXT NOT NULL,
+                        memory_type TEXT NOT NULL CHECK (memory_type IN ('fact', 'preference', 'event', 'system')),
+                        key TEXT,
+                        value JSONB,
+                        confidence REAL DEFAULT 1.0 CHECK (confidence >= 0.0 AND confidence <= 1.0),
+                        importance INTEGER CHECK (importance BETWEEN 1 AND 5),
                         metadata JSONB DEFAULT '{}',
                         created_at TIMESTAMP DEFAULT NOW(),
-                        expires_at TIMESTAMP
+                        updated_at TIMESTAMP DEFAULT NOW(),
+                        expires_at TIMESTAMP,
+                        ttl_seconds INTEGER,
+                        is_deleted BOOLEAN DEFAULT FALSE,
+                        ingestion_mode TEXT DEFAULT 'explicit' CHECK (ingestion_mode IN ('explicit', 'rules'))
                     );
                     
+                    CREATE INDEX IF NOT EXISTS idx_owner_id ON memories(owner_id);
                     CREATE INDEX IF NOT EXISTS idx_user_id ON memories(user_id);
                     CREATE INDEX IF NOT EXISTS idx_type ON memories(memory_type);
+                    CREATE INDEX IF NOT EXISTS idx_is_deleted ON memories(is_deleted);
+                    CREATE INDEX IF NOT EXISTS idx_expires_at ON memories(expires_at);
                     
                     CREATE TABLE IF NOT EXISTS audit_logs (
                         id TEXT PRIMARY KEY,
@@ -58,43 +73,106 @@ class Database:
                         timestamp TIMESTAMP DEFAULT NOW(),
                         metadata JSONB DEFAULT '{}'
                     );
+                    
+                    CREATE TABLE IF NOT EXISTS api_keys (
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        key_hash TEXT NOT NULL UNIQUE,
+                        owner_id TEXT NOT NULL,
+                        is_active BOOLEAN NOT NULL DEFAULT true,
+                        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                        revoked_at TIMESTAMP,
+                        rate_limit_per_minute INTEGER NOT NULL DEFAULT 60,
+                        metadata JSONB DEFAULT '{}',
+                        last_used_at TIMESTAMP
+                    );
+                    
+                    CREATE INDEX IF NOT EXISTS idx_key_hash ON api_keys(key_hash);
+                    CREATE INDEX IF NOT EXISTS idx_owner_id ON api_keys(owner_id);
+                    CREATE INDEX IF NOT EXISTS idx_is_active ON api_keys(is_active);
                 """)
                 conn.commit()
     
     def add_memory(
         self,
+        owner_id: str,
         user_id: str,
         content: str,
-        memory_type: Literal["fact", "preference", "event"],
+        memory_type: Literal["fact", "preference", "event", "system"],
+        key: Optional[str] = None,
+        value: Optional[any] = None,
+        confidence: float = 1.0,
+        importance: Optional[int] = None,
         metadata: dict = None,
+        ttl_seconds: Optional[int] = None,
+        ingestion_mode: Literal["explicit", "rules"] = "explicit",
         expires_at: Optional[datetime] = None
     ) -> dict:
-        """Add a new memory"""
+        """Add a new memory with Memory Contract v1 fields"""
         memory_id = str(uuid.uuid4())
         created_at = datetime.utcnow()
+        updated_at = created_at
+        
+        # Validate memory_type
+        valid_types = ["fact", "preference", "event", "system"]
+        if memory_type not in valid_types:
+            raise ValueError(f"Invalid memory_type. Must be one of: {', '.join(valid_types)}")
+        
+        # Validate ingestion_mode
+        valid_modes = ["explicit", "rules"]
+        if ingestion_mode not in valid_modes:
+            raise ValueError(f"Invalid ingestion_mode. Must be one of: {', '.join(valid_modes)}")
+        
+        # Validate confidence
+        if not (0.0 <= confidence <= 1.0):
+            raise ValueError("confidence must be between 0.0 and 1.0")
+        
+        # Validate importance
+        if importance is not None and not (1 <= importance <= 5):
+            raise ValueError("importance must be between 1 and 5")
+        
+        # Calculate expires_at from ttl_seconds if provided
+        if ttl_seconds is not None and expires_at is None:
+            from datetime import timedelta
+            expires_at = created_at + timedelta(seconds=ttl_seconds)
         
         # Encrypt content before storage
         encrypted_content = self.encryption.encrypt(content) if self.encryption else content
         
-        # Validate metadata is JSON-serializable
+        # Validate and serialize metadata
         try:
             metadata_json = json.dumps(metadata or {})
         except (TypeError, ValueError) as e:
             raise ValueError(f"Metadata not JSON-serializable: {e}")
         
+        # Serialize value as JSON
+        value_json = json.dumps(value) if value is not None else None
+        
         with self._get_conn() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    INSERT INTO memories (id, user_id, content, memory_type, metadata, created_at, expires_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO memories (
+                        id, owner_id, user_id, content, memory_type, key, value,
+                        confidence, importance, metadata, created_at, updated_at,
+                        expires_at, ttl_seconds, is_deleted, ingestion_mode
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     memory_id,
+                    owner_id,
                     user_id,
                     encrypted_content,
                     memory_type,
+                    key,
+                    value_json,
+                    confidence,
+                    importance,
                     metadata_json,
                     created_at,
-                    expires_at
+                    updated_at,
+                    expires_at,
+                    ttl_seconds,
+                    False,  # is_deleted
+                    ingestion_mode
                 ))
                 
                 # Audit log
@@ -103,39 +181,53 @@ class Database:
                     VALUES (%s, %s, %s, %s, %s)
                 """, (
                     str(uuid.uuid4()),
-                    user_id,
+                    owner_id,
                     "memory.create",
                     memory_id,
-                    json.dumps({"type": memory_type})
+                    json.dumps({"type": memory_type, "ingestion_mode": ingestion_mode})
                 ))
                 
                 conn.commit()
         
         return {
             "id": memory_id,
+            "owner_id": owner_id,
             "user_id": user_id,
             "content": content,
             "type": memory_type,
+            "key": key,
+            "value": value,
+            "confidence": confidence,
+            "importance": importance,
             "metadata": metadata or {},
             "created_at": created_at.isoformat(),
-            "expires_at": expires_at.isoformat() if expires_at else None
+            "updated_at": updated_at.isoformat(),
+            "expires_at": expires_at.isoformat() if expires_at else None,
+            "ttl_seconds": ttl_seconds,
+            "is_deleted": False,
+            "ingestion_mode": ingestion_mode
         }
     
     def get_memories(
         self,
+        owner_id: str,
         user_id: str,
         memory_type: Optional[str] = None,
         limit: int = 100
     ) -> list[dict]:
-        """Get memories for a user"""
+        """Get memories for a user (Memory Contract v1)"""
         with self._get_conn() as conn:
             with conn.cursor() as cur:
                 query = """
-                    SELECT id, user_id, content, memory_type, metadata, created_at, expires_at
+                    SELECT 
+                        id, owner_id, user_id, content, memory_type, key, value,
+                        confidence, importance, metadata, created_at, updated_at,
+                        expires_at, ttl_seconds, is_deleted, ingestion_mode
                     FROM memories
-                    WHERE user_id = %s
+                    WHERE owner_id = %s AND user_id = %s AND is_deleted = FALSE
+                    AND (expires_at IS NULL OR expires_at > NOW())
                 """
-                params = [user_id]
+                params = [owner_id, user_id]
                 
                 if memory_type:
                     query += " AND memory_type = %s"
@@ -150,30 +242,70 @@ class Database:
         memories = []
         for row in rows:
             # Decrypt content on read
-            decrypted_content = self.encryption.decrypt(row[2]) if self.encryption else row[2]
+            decrypted_content = self.encryption.decrypt(row[3]) if self.encryption else row[3]
+            
+            # Value is already parsed by psycopg from JSONB
+            value = row[6]  # No need for json.loads() - psycopg handles JSONB
             
             memories.append({
                 "id": row[0],
-                "user_id": row[1],
+                "owner_id": row[1],
+                "user_id": row[2],
                 "content": decrypted_content,
-                "type": row[3],
-                "metadata": row[4],
-                "created_at": row[5].isoformat(),
-                "expires_at": row[6].isoformat() if row[6] else None
+                "type": row[4],
+                "key": row[5],
+                "value": value,
+                "confidence": row[7],
+                "importance": row[8],
+                "metadata": row[9],
+                "created_at": row[10].isoformat(),
+                "updated_at": row[11].isoformat(),
+                "expires_at": row[12].isoformat() if row[12] else None,
+                "ttl_seconds": row[13],
+                "is_deleted": row[14],
+                "ingestion_mode": row[15]
             })
         
         return memories
     
-    def delete_memory(self, memory_id: str, user_id: str) -> bool:
-        """Hard delete a memory (only if owned by user)"""
+    def soft_delete_memory(self, memory_id: str, owner_id: str, user_id: str) -> bool:
+        """Soft delete a memory (Memory Contract v1)"""
         with self._get_conn() as conn:
             with conn.cursor() as cur:
-                # Delete only if owned by user
+                cur.execute("""
+                    UPDATE memories 
+                    SET is_deleted = TRUE, updated_at = NOW()
+                    WHERE id = %s AND owner_id = %s AND user_id = %s
+                    RETURNING id
+                """, (memory_id, owner_id, user_id))
+                
+                result = cur.fetchone()
+                
+                if result:
+                    # Audit log
+                    cur.execute("""
+                        INSERT INTO audit_logs (id, user_id, action, resource_id)
+                        VALUES (%s, %s, %s, %s)
+                    """, (
+                        str(uuid.uuid4()),
+                        owner_id,
+                        "memory.soft_delete",
+                        memory_id
+                    ))
+                
+                conn.commit()
+                return result is not None
+    
+    def delete_memory(self, memory_id: str, owner_id: str, user_id: str) -> bool:
+        """Hard delete a memory (only if owned by owner)"""
+        with self._get_conn() as conn:
+            with conn.cursor() as cur:
+                # Delete only if owned by owner and user
                 cur.execute("""
                     DELETE FROM memories 
-                    WHERE id = %s AND user_id = %s
-                    RETURNING user_id
-                """, (memory_id, user_id))
+                    WHERE id = %s AND owner_id = %s AND user_id = %s
+                    RETURNING id
+                """, (memory_id, owner_id, user_id))
                 
                 result = cur.fetchone()
                 
@@ -268,36 +400,69 @@ class Database:
                 conn.commit()
                 return count
     
-    def get_memory_stats(self, user_id: str) -> dict:
-        """Get comprehensive memory statistics for a user"""
+    def get_memory_stats(self, owner_id: str, user_id: str) -> dict:
+        """Get comprehensive memory statistics for a user (Memory Contract v1)"""
         with self._get_conn() as conn:
             with conn.cursor() as cur:
-                # Total count
+                # Total count (active only)
                 cur.execute("""
-                    SELECT COUNT(*) FROM memories WHERE user_id = %s
-                """, (user_id,))
+                    SELECT COUNT(*) FROM memories 
+                    WHERE owner_id = %s AND user_id = %s AND is_deleted = FALSE
+                    AND (expires_at IS NULL OR expires_at > NOW())
+                """, (owner_id, user_id))
                 total = cur.fetchone()[0]
                 
-                # Count by type
+                # Soft-deleted count
+                cur.execute("""
+                    SELECT COUNT(*) FROM memories 
+                    WHERE owner_id = %s AND user_id = %s AND is_deleted = TRUE
+                """, (owner_id, user_id))
+                deleted_count = cur.fetchone()[0]
+                
+                # Expired count
+                cur.execute("""
+                    SELECT COUNT(*) FROM memories 
+                    WHERE owner_id = %s AND user_id = %s AND is_deleted = FALSE
+                    AND expires_at IS NOT NULL AND expires_at <= NOW()
+                """, (owner_id, user_id))
+                expired_count = cur.fetchone()[0]
+                
+                # Count by type (active only)
                 cur.execute("""
                     SELECT memory_type, COUNT(*) 
                     FROM memories 
-                    WHERE user_id = %s 
+                    WHERE owner_id = %s AND user_id = %s AND is_deleted = FALSE
+                    AND (expires_at IS NULL OR expires_at > NOW())
                     GROUP BY memory_type
-                """, (user_id,))
+                """, (owner_id, user_id))
                 by_type = {row[0]: row[1] for row in cur.fetchall()}
                 
-                # Date range
+                # Count by importance (active only)
+                cur.execute("""
+                    SELECT importance, COUNT(*) 
+                    FROM memories 
+                    WHERE owner_id = %s AND user_id = %s AND is_deleted = FALSE
+                    AND (expires_at IS NULL OR expires_at > NOW())
+                    AND importance IS NOT NULL
+                    GROUP BY importance
+                """, (owner_id, user_id))
+                by_importance = {row[0]: row[1] for row in cur.fetchall()}
+                
+                # Date range (active only)
                 cur.execute("""
                     SELECT MIN(created_at), MAX(created_at)
                     FROM memories
-                    WHERE user_id = %s
-                """, (user_id,))
+                    WHERE owner_id = %s AND user_id = %s AND is_deleted = FALSE
+                    AND (expires_at IS NULL OR expires_at > NOW())
+                """, (owner_id, user_id))
                 date_row = cur.fetchone()
                 
                 return {
                     "total": total,
+                    "deleted": deleted_count,
+                    "expired": expired_count,
                     "by_type": by_type,
+                    "by_importance": by_importance,
                     "oldest": date_row[0].isoformat() if date_row[0] else None,
                     "newest": date_row[1].isoformat() if date_row[1] else None
                 }

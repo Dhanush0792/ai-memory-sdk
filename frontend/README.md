@@ -1,18 +1,28 @@
 # AI Memory SDK - Frontend
 
-Static landing page for the AI Memory SDK with "Neural Memory Space" design.
+API landing page for the AI Memory SDK.
 
 ## Overview
 
-Pure static frontend featuring:
-- Hero section with floating memory nodes
-- Visual explanation of how memory works
-- Interactive memory demo
-- Feature showcase
-- Dark gradient theme with depth effects
+This is a **static landing page** that serves as the entry point to the AI Memory SDK API.
 
-**Deployed on**: Netlify  
-**No build step required** - Pure static HTML/CSS/JS
+**Purpose:**
+- Introduce the AI Memory SDK concept
+- Direct users to the API documentation at `/docs`
+- Explain how memory works and what makes it different
+- Showcase features and use cases
+
+**This is NOT:**
+- A dashboard or admin UI
+- An interactive demo with backend integration
+- A full-featured web application
+
+**This IS:**
+- An API-first product
+- A landing page that positions Swagger UI (`/docs`) as the primary product
+- Intentionally minimal to keep focus on the API
+
+
 
 ## Running Locally
 

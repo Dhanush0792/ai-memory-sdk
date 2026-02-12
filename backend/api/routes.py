@@ -1,13 +1,13 @@
 """FastAPI Routes for Memory SDK"""
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, validator
-from typing import Optional, Literal
+from typing import Optional, Literal, Any
 from datetime import datetime
 import json
 from .context_injection import ContextInjector
 from .database import Database
-from .auth import get_authenticated_user
+from .auth import get_api_key_context, APIKeyContext
 
 router = APIRouter()
 db = Database()
@@ -15,10 +15,25 @@ context_injector = ContextInjector()
 
 # Request Models
 class AddMemoryRequest(BaseModel):
+    user_id: str
     content: str
-    type: Literal["fact", "preference", "event"]
+    type: Literal["fact", "preference", "event", "system"]
+    key: Optional[str] = None
+    value: Optional[Any] = None
+    confidence: float = 1.0
+    importance: Optional[int] = None
+    ttl_seconds: Optional[int] = None
+    ingestion_mode: Literal["explicit", "rules"] = "explicit"
     metadata: dict = {}
     expires_at: Optional[str] = None
+    
+    @validator('user_id')
+    def validate_user_id(cls, v):
+        if not v or not v.strip():
+            raise ValueError('user_id cannot be empty')
+        if len(v) > 255:
+            raise ValueError('user_id too long (max 255 chars)')
+        return v
     
     @validator('content')
     def validate_content(cls, v):
@@ -26,6 +41,18 @@ class AddMemoryRequest(BaseModel):
             raise ValueError('content cannot be empty')
         if len(v) > 10000:
             raise ValueError('content too long (max 10000 chars)')
+        return v
+    
+    @validator('confidence')
+    def validate_confidence(cls, v):
+        if not (0.0 <= v <= 1.0):
+            raise ValueError('confidence must be between 0.0 and 1.0')
+        return v
+    
+    @validator('importance')
+    def validate_importance(cls, v):
+        if v is not None and not (1 <= v <= 5):
+            raise ValueError('importance must be between 1 and 5')
         return v
     
     @validator('metadata')
@@ -83,22 +110,31 @@ class ExtractRequest(BaseModel):
 # Routes
 @router.post("/api/v1/memory")
 async def add_memory(
-    request: AddMemoryRequest,
-    user_id: str = Depends(get_authenticated_user)
+    req_body: AddMemoryRequest,
+    api_key_context: APIKeyContext = Depends(get_api_key_context)
 ):
-    """Add a new memory"""
+    """Add a new memory (Memory Contract v1)"""
+    owner_id = api_key_context.owner_id
+    
     expires_at = None
-    if request.expires_at:
+    if req_body.expires_at:
         try:
-            expires_at = datetime.fromisoformat(request.expires_at.replace("Z", "+00:00"))
+            expires_at = datetime.fromisoformat(req_body.expires_at.replace("Z", "+00:00"))
         except (ValueError, TypeError) as e:
             raise HTTPException(status_code=422, detail=f"Invalid expires_at format: {str(e)}")
     
     memory = db.add_memory(
-        user_id=user_id,
-        content=request.content,
-        memory_type=request.type,
-        metadata=request.metadata,
+        owner_id=owner_id,
+        user_id=req_body.user_id,
+        content=req_body.content,
+        memory_type=req_body.type,
+        key=req_body.key,
+        value=req_body.value,
+        confidence=req_body.confidence,
+        importance=req_body.importance,
+        metadata=req_body.metadata,
+        ttl_seconds=req_body.ttl_seconds,
+        ingestion_mode=req_body.ingestion_mode,
         expires_at=expires_at
     )
     
@@ -106,26 +142,48 @@ async def add_memory(
 
 @router.get("/api/v1/memory")
 async def get_memories(
+    user_id: str,
     type: Optional[str] = None,
     limit: int = 100,
-    user_id: str = Depends(get_authenticated_user)
+    api_key_context: APIKeyContext = Depends(get_api_key_context)
 ):
-    """Get memories for authenticated user"""
-    memories = db.get_memories(user_id=user_id, memory_type=type, limit=limit)
+    """Get memories for authenticated user (Memory Contract v1)"""
+    owner_id = api_key_context.owner_id
+    
+    memories = db.get_memories(owner_id=owner_id, user_id=user_id, memory_type=type, limit=limit)
     return memories
 
 @router.delete("/api/v1/memory/{memory_id}")
 async def delete_memory(
     memory_id: str,
-    user_id: str = Depends(get_authenticated_user)
+    user_id: str,
+    api_key_context: APIKeyContext = Depends(get_api_key_context)
 ):
-    """Delete a specific memory (only if owned by user)"""
-    deleted = db.delete_memory(memory_id, user_id)
+    """Hard delete a specific memory (only if owned by owner)"""
+    owner_id = api_key_context.owner_id
+    
+    deleted = db.delete_memory(memory_id, owner_id, user_id)
     
     if not deleted:
         raise HTTPException(status_code=404, detail="Memory not found or not owned by user")
     
     return {"deleted": True, "memory_id": memory_id}
+
+@router.delete("/api/v1/memory/{memory_id}/soft")
+async def soft_delete_memory(
+    memory_id: str,
+    user_id: str,
+    api_key_context: APIKeyContext = Depends(get_api_key_context)
+):
+    """Soft delete a specific memory (Memory Contract v1)"""
+    owner_id = api_key_context.owner_id
+    
+    deleted = db.soft_delete_memory(memory_id, owner_id, user_id)
+    
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Memory not found or not owned by user")
+    
+    return {"soft_deleted": True, "memory_id": memory_id}
 
 @router.post("/api/v1/chat")
 async def chat(
@@ -277,7 +335,12 @@ async def extract_memories(
         raise HTTPException(status_code=500, detail=f"Extraction error: {str(e)}")
 
 @router.get("/api/v1/memory/stats")
-async def get_memory_stats(user_id: str = Depends(get_authenticated_user)):
-    """Get memory statistics for authenticated user"""
-    stats = db.get_memory_stats(user_id)
+async def get_memory_stats(
+    user_id: str,
+    api_key_context: APIKeyContext = Depends(get_api_key_context)
+):
+    """Get memory statistics for authenticated user (Memory Contract v1)"""
+    owner_id = api_key_context.owner_id
+    
+    stats = db.get_memory_stats(owner_id, user_id)
     return stats

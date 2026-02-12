@@ -8,7 +8,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import router
 from .database import Database
-from .rate_limiter import rate_limit_middleware
 
 app = FastAPI(
     title="Secure AI Memory SDK",
@@ -16,8 +15,6 @@ app = FastAPI(
     description="Enterprise-grade memory for LLM applications"
 )
 
-# Rate limiting middleware (FIRST - before CORS)
-app.middleware("http")(rate_limit_middleware)
 
 # CORS - Environment-driven configuration
 cors_origins = os.getenv("CORS_ORIGINS", "")
