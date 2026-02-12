@@ -315,4 +315,4 @@ For issues or questions:
 
 ---
 
-**Built with ❤️ for production use.**
+**Built with ❤️ from India.**
