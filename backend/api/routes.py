@@ -7,7 +7,7 @@ from datetime import datetime
 import json
 from .context_injection import ContextInjector
 from .database import Database
-from .auth import get_api_key_context, APIKeyContext
+from .auth import get_api_key_context, APIKeyContext, get_authenticated_user
 
 router = APIRouter()
 db = Database()
@@ -187,29 +187,34 @@ async def soft_delete_memory(
 
 @router.post("/api/v1/chat")
 async def chat(
-    request: ChatRequest,
-    user_id: str = Depends(get_authenticated_user)
+    req_body: ChatRequest,
+    request: Request,
+    api_key_context: APIKeyContext = Depends(get_api_key_context)
 ):
     """Chat with AI assistant that remembers user context"""
+    owner_id = api_key_context.owner_id
+    user_id = get_authenticated_user(request)
+    
     try:
         from .services.chat_service import ChatService
         
         # Retrieve user memories
-        memories = db.get_memories(user_id=user_id, limit=20)
+        memories = db.get_memories(owner_id=owner_id, user_id=user_id, limit=20)
         
         # Process chat
         chat_service = ChatService()
         result = chat_service.chat(
-            message=request.message,
+            message=req_body.message,
             memories=memories,
-            auto_save=request.auto_save
+            auto_save=req_body.auto_save
         )
         
         # Save extracted memories if auto_save enabled
         saved_memories = []
-        if request.auto_save and "extracted_memories" in result:
+        if req_body.auto_save and "extracted_memories" in result:
             for mem in result["extracted_memories"]:
                 saved = db.add_memory(
+                    owner_id=owner_id,
                     user_id=user_id,
                     content=mem["value"],
                     memory_type=mem["type"],
@@ -229,25 +234,35 @@ async def chat(
 
 @router.post("/api/v1/memory/context")
 async def get_context(
-    request: ContextRequest,
-    user_id: str = Depends(get_authenticated_user)
+    req_body: ContextRequest,
+    request: Request,
+    api_key_context: APIKeyContext = Depends(get_api_key_context)
 ):
     """Get LLM-ready context (MANDATORY)"""
-    memories = db.get_memories(user_id=user_id)
+    owner_id = api_key_context.owner_id
+    user_id = get_authenticated_user(request)
+    
+    memories = db.get_memories(owner_id=owner_id, user_id=user_id)
     
     context = context_injector.build_context(
         memories=memories,
-        query=request.query,
-        max_tokens=request.max_tokens,
-        memory_types=request.memory_types
+        query=req_body.query,
+        max_tokens=req_body.max_tokens,
+        memory_types=req_body.memory_types
     )
     
     return {"context": context, "token_count": context_injector.count_tokens(context)}
 
 @router.get("/api/v1/gdpr/export")
-async def export_user_data(user_id: str = Depends(get_authenticated_user)):
+async def export_user_data(
+    request: Request,
+    api_key_context: APIKeyContext = Depends(get_api_key_context)
+):
     """Export all user data (GDPR) - only for authenticated user"""
-    memories = db.get_memories(user_id=user_id)
+    owner_id = api_key_context.owner_id
+    user_id = get_authenticated_user(request)
+    
+    memories = db.get_memories(owner_id=owner_id, user_id=user_id)
     
     return {
         "user_id": user_id,
@@ -260,9 +275,15 @@ async def export_user_data(user_id: str = Depends(get_authenticated_user)):
     }
 
 @router.delete("/api/v1/gdpr/delete")
-async def delete_user_data(user_id: str = Depends(get_authenticated_user)):
+async def delete_user_data(
+    request: Request,
+    api_key_context: APIKeyContext = Depends(get_api_key_context)
+):
     """Hard delete all user data (GDPR) - only for authenticated user"""
-    count = db.delete_user_data(user_id)
+    owner_id = api_key_context.owner_id
+    user_id = get_authenticated_user(request)
+    
+    count = db.delete_user_data(owner_id, user_id)
     
     return {
         "deleted": True,
@@ -274,10 +295,14 @@ async def delete_user_data(user_id: str = Depends(get_authenticated_user)):
 @router.delete("/api/v1/memory/type/{memory_type}")
 async def delete_by_type(
     memory_type: str,
-    user_id: str = Depends(get_authenticated_user)
+    request: Request,
+    api_key_context: APIKeyContext = Depends(get_api_key_context)
 ):
     """Delete memories by type for authenticated user"""
-    count = db.delete_by_type(user_id=user_id, memory_type=memory_type)
+    owner_id = api_key_context.owner_id
+    user_id = get_authenticated_user(request)
+    
+    count = db.delete_by_type(owner_id=owner_id, user_id=user_id, memory_type=memory_type)
     
     return {
         "deleted": True,
@@ -288,10 +313,14 @@ async def delete_by_type(
 @router.delete("/api/v1/memory/key/{key}")
 async def delete_by_key(
     key: str,
-    user_id: str = Depends(get_authenticated_user)
+    request: Request,
+    api_key_context: APIKeyContext = Depends(get_api_key_context)
 ):
     """Delete memories by metadata key for authenticated user"""
-    count = db.delete_by_key(user_id=user_id, key=key)
+    owner_id = api_key_context.owner_id
+    user_id = get_authenticated_user(request)
+    
+    count = db.delete_by_key(owner_id=owner_id, user_id=user_id, key=key)
     
     return {
         "deleted": True,
@@ -301,19 +330,24 @@ async def delete_by_key(
 
 @router.post("/api/v1/memory/extract")
 async def extract_memories(
-    request: ExtractRequest,
-    user_id: str = Depends(get_authenticated_user)
+    req_body: ExtractRequest,
+    request: Request,
+    api_key_context: APIKeyContext = Depends(get_api_key_context)
 ):
     """Extract and save memories from text using LLM"""
+    owner_id = api_key_context.owner_id
+    user_id = get_authenticated_user(request)
+    
     try:
         from .services.memory_extractor import MemoryExtractor
         
         extractor = MemoryExtractor()
-        extracted = extractor.extract(request.message)
+        extracted = extractor.extract(req_body.message)
         
         saved = []
         for mem in extracted:
             memory = db.add_memory(
+                owner_id=owner_id,
                 user_id=user_id,
                 content=mem["value"],
                 memory_type=mem["type"],

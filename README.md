@@ -315,3 +315,16 @@ A: Run `./scripts/backup_postgres.sh` manually or via cron.
 ✅ Compliance-ready
 
 **Status**: Production-ready for regulated industries.
+
+---
+
+## 📞 Support
+
+For issues or questions:
+1. Check component-specific README ([backend](backend/README.md) or [frontend](frontend/README.md))
+2. API documentation at `/docs`
+3. Open an issue on GitHub
+
+---
+
+**Built with ❤️ from India.**
