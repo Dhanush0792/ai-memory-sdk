@@ -1,10 +1,12 @@
 """FastAPI Routes for Memory SDK"""
 
 from fastapi import APIRouter, HTTPException, Depends, Request
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, EmailStr
 from typing import Optional, Literal, Any
 from datetime import datetime
 import json
+import secrets
+import hashlib
 from .context_injection import ContextInjector
 from .database import Database
 from .auth import get_api_key_context, APIKeyContext, get_authenticated_user
@@ -96,6 +98,16 @@ class ChatRequest(BaseModel):
             raise ValueError('message too long (max 5000 chars)')
         return v
 
+class GenerateKeyRequest(BaseModel):
+    email: EmailStr
+    name: Optional[str] = None
+    
+    @validator('name')
+    def validate_name(cls, v):
+        if v and len(v) > 100:
+            raise ValueError('name too long (max 100 chars)')
+        return v
+
 class ExtractRequest(BaseModel):
     message: str
     
@@ -107,7 +119,73 @@ class ExtractRequest(BaseModel):
             raise ValueError('message too long (max 5000 chars)')
         return v
 
+
 # Routes
+
+# Public endpoint - No authentication required
+@router.post("/api/v1/keys/generate")
+async def generate_api_key(request: GenerateKeyRequest):
+    """
+    Generate a new API key for a user
+    
+    This is a PUBLIC endpoint - no authentication required.
+    Users provide their email and get an API key instantly.
+    
+    ⚠️ The API key is shown ONLY ONCE and cannot be retrieved later.
+    """
+    
+    # Generate secure API key
+    # Format: aimsk_live_<32 random characters>
+    random_part = secrets.token_urlsafe(32)
+    api_key = f"aimsk_live_{random_part}"
+    
+    # Hash the key for secure storage
+    key_hash = hashlib.sha256(api_key.encode()).hexdigest()
+    
+    # Prepare metadata
+    metadata = {}
+    if request.name:
+        metadata["name"] = request.name
+    
+    # Save to database
+    try:
+        with db._get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO api_keys (key_hash, owner_id, is_active, rate_limit_per_minute, metadata)
+                    VALUES (%s, %s, %s, %s, %s)
+                    RETURNING id, created_at
+                """, (key_hash, request.email, True, 60, json.dumps(metadata)))
+                
+                result = cur.fetchone()
+                key_id = result[0]
+                created_at = result[1]
+                
+                conn.commit()
+        
+        return {
+            "success": True,
+            "api_key": api_key,
+            "owner_id": request.email,
+            "rate_limit": 60,
+            "created_at": created_at.isoformat(),
+            "message": "⚠️ Save this API key securely. You won't be able to see it again!"
+        }
+        
+    except Exception as e:
+        # Check if email already has a key
+        if "unique" in str(e).lower() or "duplicate" in str(e).lower():
+            raise HTTPException(
+                status_code=409,
+                detail="An API key already exists for this email. Contact support if you need a new key."
+            )
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to generate API key. Please try again."
+        )
+
+# Authenticated endpoints below
+
 @router.post("/api/v1/memory")
 async def add_memory(
     req_body: AddMemoryRequest,
