@@ -202,6 +202,8 @@ class Database:
                     CREATE INDEX IF NOT EXISTS idx_api_keys_owner_id ON api_keys(owner_id);
                     CREATE INDEX IF NOT EXISTS idx_is_active ON api_keys(is_active);
                     
+                    CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+                    
                     CREATE TABLE IF NOT EXISTS users (
                         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         email VARCHAR(255) UNIQUE NOT NULL,
