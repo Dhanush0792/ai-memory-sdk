@@ -16,7 +16,8 @@ import hmac
 import hashlib
 import secrets
 import logging
-from fastapi import Header, HTTPException, Request
+from fastapi import Header, HTTPException, Request, Security, status
+from fastapi.security import APIKeyHeader, HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -39,46 +40,49 @@ class APIKeyContext:
 
 
 
-def get_api_key_context(
+
+# Define security schemes for Swagger UI
+api_key_scheme = APIKeyHeader(name="X-API-Key", auto_error=False)
+http_bearer_scheme = HTTPBearer(auto_error=False)
+
+async def get_api_key_context(
     request: Request,
-    authorization: str = Header(None)
+    x_api_key: Optional[str] = Security(api_key_scheme),
+    bearer: Optional[HTTPAuthorizationCredentials] = Security(http_bearer_scheme)
 ) -> APIKeyContext:
     """
     Validate API key and return authentication context
     
+    Supports:
+    - X-API-Key header (Preferred)
+    - Authorization: Bearer <key>
+    
     This is the primary authentication mechanism for all /api/v1/* endpoints.
-    
-    Args:
-        request: FastAPI request object
-        authorization: Bearer token from Authorization header
-    
-    Returns:
-        APIKeyContext with owner_id, rate_limit, and metadata
-    
-    Raises:
-        HTTPException: 401 if authentication fails
-    
-    Security:
-        - All auth failures return the same generic message
-        - API keys are never logged
-        - Timing-safe comparisons used
     """
-    # Check for missing authorization
-    if not authorization:
-        raise HTTPException(
-            status_code=401,
-            detail="Authentication required"
-        )
     
-    # Check for malformed authorization
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=401,
-            detail="Authentication required"
-        )
+    api_key = None
     
-    # Extract token
-    api_key = authorization[7:]  # Remove "Bearer " prefix
+    # 1. Try X-API-Key first (Swagger default)
+    if x_api_key:
+        api_key = x_api_key
+        
+    # 2. Try Bearer token
+    elif bearer and bearer.credentials:
+        api_key = bearer.credentials
+        
+    # 3. Check for raw Authorization header (fallback for non-compliant clients)
+    elif "authorization" in request.headers:
+        auth_header = request.headers["authorization"]
+        if auth_header.startswith("Bearer "):
+            api_key = auth_header[7:]
+    
+    # No key found
+    if not api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required: Provide X-API-Key or Bearer token"
+        )
+
     
     # Validate API key format (aimsk_live_*)
     if api_key.startswith("aimsk_live_"):

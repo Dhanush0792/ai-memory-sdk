@@ -41,6 +41,15 @@ def root():
 async def health():
     return {"status": "healthy", "version": "1.0.0"}
 
+# Debug endpoint (Temporary - Phase 5)
+@app.get("/debug/env")
+def debug_env():
+    return {
+        "api_key_configured": bool(os.getenv("API_KEY")),
+        "gemini_key_configured": bool(os.getenv("GEMINI_API_KEY")),
+        "database_url_configured": bool(os.getenv("DATABASE_URL"))
+    }
+
 # Initialize database on startup
 @app.on_event("startup")
 async def startup():
