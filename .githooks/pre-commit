@@ -1,0 +1,18 @@
+#!/bin/sh
+# Pre-commit hook to prevent committing secrets
+# Install: cp .githooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+echo "🔍 Running secret scanner..."
+
+# Run the secret scanner
+python scripts/check_secrets.py
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ COMMIT BLOCKED: Secrets detected!"
+    echo "Please remove secrets before committing."
+    exit 1
+fi
+
+echo "✅ No secrets detected - proceeding with commit"
+exit 0
