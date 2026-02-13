@@ -1,0 +1,5 @@
+# Netlify Redirects Configuration
+# This file handles client-side routing for the frontend
+
+# Redirect all routes to index.html for SPA behavior
+/*    /index.html   200
