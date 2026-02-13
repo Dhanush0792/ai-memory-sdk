@@ -36,9 +36,60 @@ class Database:
             raise ConnectionError(f"Failed to connect to database: {e}") from e
     
     def init_schema(self):
-        """Initialize database schema"""
+        """Initialize database schema with automatic migrations"""
         with self._get_conn() as conn:
             with conn.cursor() as cur:
+                # First, check if we need to migrate existing tables
+                cur.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name='memories' AND column_name='owner_id'
+                """)
+                
+                owner_id_exists = cur.fetchone() is not None
+                
+                if not owner_id_exists:
+                    # Check if memories table exists at all
+                    cur.execute("""
+                        SELECT table_name 
+                        FROM information_schema.tables 
+                        WHERE table_name='memories'
+                    """)
+                    
+                    table_exists = cur.fetchone() is not None
+                    
+                    if table_exists:
+                        # Migration needed: Add owner_id column to existing table
+                        print("🔄 Migrating database: Adding owner_id column...")
+                        
+                        # Add owner_id column (nullable first)
+                        cur.execute("""
+                            ALTER TABLE memories 
+                            ADD COLUMN IF NOT EXISTS owner_id TEXT
+                        """)
+                        
+                        # Populate owner_id with user_id for existing records (backward compatibility)
+                        cur.execute("""
+                            UPDATE memories 
+                            SET owner_id = user_id 
+                            WHERE owner_id IS NULL
+                        """)
+                        
+                        # Make it NOT NULL
+                        cur.execute("""
+                            ALTER TABLE memories 
+                            ALTER COLUMN owner_id SET NOT NULL
+                        """)
+                        
+                        # Create index
+                        cur.execute("""
+                            CREATE INDEX IF NOT EXISTS idx_owner_id ON memories(owner_id)
+                        """)
+                        
+                        conn.commit()
+                        print("✅ Migration completed: owner_id column added")
+                
+                # Now create/update tables with full schema
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS memories (
                         id TEXT PRIMARY KEY,
@@ -87,7 +138,7 @@ class Database:
                     );
                     
                     CREATE INDEX IF NOT EXISTS idx_key_hash ON api_keys(key_hash);
-                    CREATE INDEX IF NOT EXISTS idx_owner_id ON api_keys(owner_id);
+                    CREATE INDEX IF NOT EXISTS idx_api_keys_owner_id ON api_keys(owner_id);
                     CREATE INDEX IF NOT EXISTS idx_is_active ON api_keys(is_active);
                 """)
                 conn.commit()
@@ -324,14 +375,14 @@ class Database:
                 conn.commit()
                 return result is not None
     
-    def delete_user_data(self, user_id: str) -> int:
+    def delete_user_data(self, owner_id: str, user_id: str) -> int:
         """Hard delete all user data (GDPR)"""
         with self._get_conn() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    DELETE FROM memories WHERE user_id = %s
+                    DELETE FROM memories WHERE owner_id = %s AND user_id = %s
                     RETURNING id
-                """, (user_id,))
+                """, (owner_id, user_id))
                 
                 count = len(cur.fetchall())
                 
@@ -349,14 +400,14 @@ class Database:
                 conn.commit()
                 return count
     
-    def delete_by_type(self, user_id: str, memory_type: str) -> int:
+    def delete_by_type(self, owner_id: str, user_id: str, memory_type: str) -> int:
         """Delete all memories of a specific type"""
         with self._get_conn() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    DELETE FROM memories WHERE user_id = %s AND memory_type = %s
+                    DELETE FROM memories WHERE owner_id = %s AND user_id = %s AND memory_type = %s
                     RETURNING id
-                """, (user_id, memory_type))
+                """, (owner_id, user_id, memory_type))
                 
                 count = len(cur.fetchall())
                 
@@ -374,15 +425,15 @@ class Database:
                 conn.commit()
                 return count
     
-    def delete_by_key(self, user_id: str, key: str) -> int:
+    def delete_by_key(self, owner_id: str, user_id: str, key: str) -> int:
         """Delete memories by metadata key"""
         with self._get_conn() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
                     DELETE FROM memories 
-                    WHERE user_id = %s AND metadata ? %s
+                    WHERE owner_id = %s AND user_id = %s AND metadata ? %s
                     RETURNING id
-                """, (user_id, key))
+                """, (owner_id, user_id, key))
                 
                 count = len(cur.fetchall())
                 
