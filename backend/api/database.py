@@ -39,55 +39,116 @@ class Database:
         """Initialize database schema with automatic migrations"""
         with self._get_conn() as conn:
             with conn.cursor() as cur:
-                # First, check if we need to migrate existing tables
+                # Check if memories table exists
                 cur.execute("""
-                    SELECT column_name 
-                    FROM information_schema.columns 
-                    WHERE table_name='memories' AND column_name='owner_id'
+                    SELECT table_name 
+                    FROM information_schema.tables 
+                    WHERE table_name='memories'
                 """)
                 
-                owner_id_exists = cur.fetchone() is not None
+                table_exists = cur.fetchone() is not None
                 
-                if not owner_id_exists:
-                    # Check if memories table exists at all
+                if table_exists:
+                    # Table exists - check for missing columns and migrate
+                    print("🔄 Checking database schema for migrations...")
+                    
+                    # Get all existing columns
                     cur.execute("""
-                        SELECT table_name 
-                        FROM information_schema.tables 
+                        SELECT column_name 
+                        FROM information_schema.columns 
                         WHERE table_name='memories'
                     """)
+                    existing_columns = {row[0] for row in cur.fetchall()}
                     
-                    table_exists = cur.fetchone() is not None
+                    migrations_needed = []
                     
-                    if table_exists:
-                        # Migration needed: Add owner_id column to existing table
-                        print("🔄 Migrating database: Adding owner_id column...")
+                    # Check for missing columns
+                    if 'owner_id' not in existing_columns:
+                        migrations_needed.append('owner_id')
+                    if 'is_deleted' not in existing_columns:
+                        migrations_needed.append('is_deleted')
+                    if 'expires_at' not in existing_columns:
+                        migrations_needed.append('expires_at')
+                    if 'ttl_seconds' not in existing_columns:
+                        migrations_needed.append('ttl_seconds')
+                    if 'ingestion_mode' not in existing_columns:
+                        migrations_needed.append('ingestion_mode')
+                    
+                    if migrations_needed:
+                        print(f"📝 Migrating columns: {', '.join(migrations_needed)}")
                         
-                        # Add owner_id column (nullable first)
-                        cur.execute("""
-                            ALTER TABLE memories 
-                            ADD COLUMN IF NOT EXISTS owner_id TEXT
-                        """)
+                        # Add owner_id column
+                        if 'owner_id' in migrations_needed:
+                            print("  → Adding owner_id column...")
+                            cur.execute("""
+                                ALTER TABLE memories 
+                                ADD COLUMN IF NOT EXISTS owner_id TEXT
+                            """)
+                            cur.execute("""
+                                UPDATE memories 
+                                SET owner_id = user_id 
+                                WHERE owner_id IS NULL
+                            """)
+                            cur.execute("""
+                                ALTER TABLE memories 
+                                ALTER COLUMN owner_id SET NOT NULL
+                            """)
+                            cur.execute("""
+                                CREATE INDEX IF NOT EXISTS idx_owner_id ON memories(owner_id)
+                            """)
                         
-                        # Populate owner_id with user_id for existing records (backward compatibility)
-                        cur.execute("""
-                            UPDATE memories 
-                            SET owner_id = user_id 
-                            WHERE owner_id IS NULL
-                        """)
+                        # Add is_deleted column
+                        if 'is_deleted' in migrations_needed:
+                            print("  → Adding is_deleted column...")
+                            cur.execute("""
+                                ALTER TABLE memories 
+                                ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE
+                            """)
+                            cur.execute("""
+                                UPDATE memories 
+                                SET is_deleted = FALSE 
+                                WHERE is_deleted IS NULL
+                            """)
+                            cur.execute("""
+                                CREATE INDEX IF NOT EXISTS idx_is_deleted ON memories(is_deleted)
+                            """)
                         
-                        # Make it NOT NULL
-                        cur.execute("""
-                            ALTER TABLE memories 
-                            ALTER COLUMN owner_id SET NOT NULL
-                        """)
+                        # Add expires_at column
+                        if 'expires_at' in migrations_needed:
+                            print("  → Adding expires_at column...")
+                            cur.execute("""
+                                ALTER TABLE memories 
+                                ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP
+                            """)
+                            cur.execute("""
+                                CREATE INDEX IF NOT EXISTS idx_expires_at ON memories(expires_at)
+                            """)
                         
-                        # Create index
-                        cur.execute("""
-                            CREATE INDEX IF NOT EXISTS idx_owner_id ON memories(owner_id)
-                        """)
+                        # Add ttl_seconds column
+                        if 'ttl_seconds' in migrations_needed:
+                            print("  → Adding ttl_seconds column...")
+                            cur.execute("""
+                                ALTER TABLE memories 
+                                ADD COLUMN IF NOT EXISTS ttl_seconds INTEGER
+                            """)
+                        
+                        # Add ingestion_mode column
+                        if 'ingestion_mode' in migrations_needed:
+                            print("  → Adding ingestion_mode column...")
+                            cur.execute("""
+                                ALTER TABLE memories 
+                                ADD COLUMN IF NOT EXISTS ingestion_mode TEXT DEFAULT 'explicit'
+                            """)
+                            cur.execute("""
+                                UPDATE memories 
+                                SET ingestion_mode = 'explicit' 
+                                WHERE ingestion_mode IS NULL
+                            """)
                         
                         conn.commit()
-                        print("✅ Migration completed: owner_id column added")
+                        print("✅ Migration completed successfully!")
+                    else:
+                        print("✅ Database schema is up to date")
                 
                 # Now create/update tables with full schema
                 cur.execute("""
