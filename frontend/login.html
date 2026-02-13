@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up | AI Memory SDK</title>
+    <title>Log In | AI Memory SDK</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -215,14 +215,10 @@
     <div class="particles" id="particles"></div>
 
     <div class="auth-card">
-        <h1>Create Account</h1>
-        <p class="subtitle">Join the future of AI memory.</p>
+        <h1>Welcome Back</h1>
+        <p class="subtitle">Log in to your account.</p>
 
-        <form id="signupForm">
-            <div class="form-group">
-                <label for="name">Full Name</label>
-                <input type="text" id="name" required placeholder="John Doe">
-            </div>
+        <form id="loginForm">
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" required placeholder="john@example.com">
@@ -232,13 +228,13 @@
                 <input type="password" id="password" required placeholder="••••••••">
             </div>
 
-            <button type="submit" id="submitBtn">Sign Up</button>
+            <button type="submit" id="submitBtn">Log In</button>
         </form>
 
         <div id="message"></div>
 
         <div class="links">
-            Already have an account? <a href="login.html">Log In</a>
+            New here? <a href="signup.html">Create Account</a>
         </div>
     </div>
 
@@ -258,36 +254,35 @@
 
         const API_URL = "https://ai-memory-sdk.onrender.com/api/v1";
 
-        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             const msg = document.getElementById('message');
 
-            btn.innerHTML = 'Creating Account...';
+            btn.innerHTML = 'Logging In...';
             btn.style.opacity = '0.7';
             msg.style.display = 'none';
 
-            const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
             try {
-                const res = await fetch(`${API_URL}/auth/signup`, {
+                const res = await fetch(`${API_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password })
+                    body: JSON.stringify({ email, password })
                 });
 
                 const data = await res.json();
 
-                if (!res.ok) throw new Error(data.detail || 'Signup failed');
+                if (!res.ok) throw new Error(data.detail || 'Login failed');
 
                 // Success
                 localStorage.setItem('access_token', data.access_token);
                 localStorage.setItem('user', JSON.stringify(data.user));
 
                 msg.className = 'success';
-                msg.innerText = 'Account created! Redirecting...';
+                msg.innerText = 'Welcome back! Redirecting...';
                 msg.style.display = 'block';
 
                 setTimeout(() => {
@@ -298,7 +293,7 @@
                 msg.className = 'error';
                 msg.innerText = err.message;
                 msg.style.display = 'block';
-                btn.innerHTML = 'Sign Up';
+                btn.innerHTML = 'Log In';
                 btn.style.opacity = '1';
             }
         });

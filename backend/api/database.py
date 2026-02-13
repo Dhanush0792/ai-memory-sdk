@@ -201,6 +201,17 @@ class Database:
                     CREATE INDEX IF NOT EXISTS idx_key_hash ON api_keys(key_hash);
                     CREATE INDEX IF NOT EXISTS idx_api_keys_owner_id ON api_keys(owner_id);
                     CREATE INDEX IF NOT EXISTS idx_is_active ON api_keys(is_active);
+                    
+                    CREATE TABLE IF NOT EXISTS users (
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        email VARCHAR(255) UNIQUE NOT NULL,
+                        name VARCHAR(255),
+                        password_hash TEXT NOT NULL,
+                        role VARCHAR(50) DEFAULT 'developer',
+                        is_active BOOLEAN DEFAULT true,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
                 """)
                 conn.commit()
     

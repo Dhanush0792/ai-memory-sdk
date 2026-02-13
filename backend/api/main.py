@@ -7,6 +7,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import router
+from .auth_routes import router as auth_router
 from .database import Database
 
 app = FastAPI(
@@ -30,6 +31,7 @@ app.add_middleware(
 
 # Routes
 app.include_router(router)
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["Auth"])
 
 # Root endpoint - JSON only (no frontend serving)
 @app.get("/")
