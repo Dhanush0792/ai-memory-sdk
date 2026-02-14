@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AI Memory SDK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/global.css">
+    <link rel="stylesheet" href="static/css/components.css">
+    <link rel="stylesheet" href="static/css/animations.css">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0f172a;
+            color: #fff;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .role-admin {
+            color: #c084fc;
+            font-weight: 600;
+        }
+
+        .role-user {
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen text-slate-200 selection:bg-indigo-500 selection:text-white">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 glass-panel border-b border-white/5 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                    <span class="text-white font-bold">M</span>
+                </div>
+                <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                    Admin Console
+                </span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-slate-400" id="adminEmail">Checking auth...</span>
+                <button id="logoutBtn" class="text-sm text-slate-300 hover:text-white transition-colors">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-12 px-6 max-w-7xl mx-auto">
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12" id="statsGrid">
+            <!-- Stats injected via JS -->
+            <div class="glass-panel p-6 animate-fade-in-up" style="animation-delay: 0.1s">
+                <div class="text-slate-400 text-sm mb-1">Total Users</div>
+                <div class="text-3xl font-bold text-white" id="statTotalUsers">-</div>
+            </div>
+            <div class="glass-panel p-6 animate-fade-in-up" style="animation-delay: 0.2s">
+                <div class="text-slate-400 text-sm mb-1">Active Users</div>
+                <div class="text-3xl font-bold text-emerald-400" id="statActiveUsers">-</div>
+            </div>
+            <div class="glass-panel p-6 animate-fade-in-up" style="animation-delay: 0.3s">
+                <div class="text-slate-400 text-sm mb-1">24h Logins</div>
+                <div class="text-3xl font-bold text-blue-400" id="statRecentLogins">-</div>
+            </div>
+            <div class="glass-panel p-6 animate-fade-in-up flex items-center justify-center cursor-pointer hover:bg-white/5 transition-colors"
+                style="animation-delay: 0.4s" onclick="openCreateUserModal()">
+                <div class="text-center">
+                    <div
+                        class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                    </div>
+                    <div class="font-medium text-indigo-300">New User</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="glass-panel overflow-hidden animate-fade-in-up" style="animation-delay: 0.5s">
+            <div class="px-6 py-4 border-b border-white/5 flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-white">User Management</h2>
+                <button onclick="loadUsers()" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-white/5">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-slate-400 text-sm border-b border-white/5 bg-white/5">
+                            <th class="px-6 py-3 font-medium">User</th>
+                            <th class="px-6 py-3 font-medium">Role</th>
+                            <th class="px-6 py-3 font-medium">Status</th>
+                            <th class="px-6 py-3 font-medium">Last Login</th>
+                            <th class="px-6 py-3 font-medium">Created</th>
+                            <th class="px-6 py-3 font-medium text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody" class="text-sm">
+                        <!-- Rows injected via JS -->
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-slate-500">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Create User Modal -->
+    <div id="createUserModal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeCreateUserModal()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md">
+            <div class="glass-panel p-6 shadow-2xl border border-white/10">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-white">Create New User</h3>
+                    <button onclick="closeCreateUserModal()" class="text-slate-400 hover:text-white">&times;</button>
+                </div>
+
+                <form id="createUserForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Full Name</label>
+                        <input type="text" id="newFullName" required
+                            class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Email Address</label>
+                        <input type="email" id="newEmail" required
+                            class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Password</label>
+                        <input type="password" id="newPassword" required minlength="8"
+                            class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Role</label>
+                        <select id="newRole"
+                            class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-4 flex justify-end gap-3">
+                        <button type="button" onclick="closeCreateUserModal()"
+                            class="px-4 py-2 text-slate-300 hover:text-white transition-colors">Cancel</button>
+                        <button type="submit"
+                            class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20">
+                            Create User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/js/admin.js"></script>
+</body>
+
+</html>

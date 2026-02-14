@@ -16,6 +16,7 @@ from app.routes.auth import router as auth_router
 from app.routes.memory import router as memory_router
 from app.routes.chat import router as chat_router
 from app.routes.user_memory import router as user_memory_router
+from app.routes.admin import router as admin_router
 from app.models import HealthResponse
 from app.jobs import ttl_cleanup_job
 from app.observability import configure_logging, logger, system_info
