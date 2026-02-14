@@ -3,6 +3,8 @@
 import psycopg
 import os
 import json
+import socket
+from urllib.parse import urlparse
 from typing import Optional, Literal
 from datetime import datetime
 import uuid
@@ -27,10 +29,29 @@ class Database:
         except ValueError:
             # Allow startup without encryption for key generation
             self.encryption = None
+            
+    def _resolve_to_ipv4(self, conn_string: str) -> Optional[str]:
+        """Resolve hostname to IPv4 to avoid IPv6 issues on some platforms"""
+        try:
+            # Handle standard URI format
+            if "://" in conn_string:
+                result = urlparse(conn_string)
+                hostname = result.hostname
+                if hostname:
+                    return socket.gethostbyname(hostname)
+            return None
+        except Exception as e:
+            # Silently fail and let psycopg handle it naturally if extraction fails
+            print(f"⚠️ DNS Resolution Warning: {e}")
+            return None
     
     def _get_conn(self):
         """Get database connection from pool"""
         try:
+            # Force IPv4 if possible to avoid "Network is unreachable" (IPv6) errors
+            host_ip = self._resolve_to_ipv4(self.conn_string)
+            if host_ip:
+                return psycopg.connect(self.conn_string, hostaddr=host_ip)
             return psycopg.connect(self.conn_string)
         except psycopg.OperationalError as e:
             raise ConnectionError(f"Failed to connect to database: {e}") from e
