@@ -53,6 +53,21 @@ METRICS_ENABLED=true
 STRUCTURED_LOGGING=true
 ```
 
+## ⚡ Supabase Setup
+
+If you are using Supabase as your database provider:
+
+1.  **Get Connection String**: Go to Project Settings -> Database -> Connection string -> URI.
+2.  **Choose Pooler Mode**:
+    -   **Transaction Mode (Port 6543)**: Recommended for serverless/Lambda environments. Note: You may need to disable prepared statements in `psycopg` if you encounter errors.
+    -   **Session Mode (Port 5432)**: Recommended for this long-running Docker container application. behavior.
+3.  **Update .env**:
+    ```bash
+    DATABASE_URL=postgres://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT].supabase.co:5432/postgres?sslmode=require
+    ```
+4.  **SSL**: Ensure `sslmode=require` is present in the URL.
+
+
 ---
 
 ## 🎯 Enterprise Features

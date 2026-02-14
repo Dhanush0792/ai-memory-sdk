@@ -12,6 +12,7 @@ from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 from app.config import settings
 from app.database import db
+from app.routes.auth import router as auth_router
 from app.routes.memory import router as memory_router
 from app.routes.chat import router as chat_router
 from app.routes.user_memory import router as user_memory_router
@@ -51,6 +52,22 @@ async def lifespan(app: FastAPI):
     try:
         db.initialize()
         
+        # Apply migrations (Basic check/create for users table)
+        # Note: In production, consider a proper migration tool like Alembic.
+        # For this minimal setup, we'll execute the raw SQL if needed.
+        with db.get_cursor() as cur:
+            try:
+                # Basic check if table exists
+                cur.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'users'")
+                if not cur.fetchone():
+                    logger.info("applying_migrations")
+                    with open("database/migrations/001_create_users.sql", "r") as f:
+                        cur.execute(f.read())
+                    logger.info("migrations_applied")
+            except Exception as e:
+                logger.warning("migration_check_failed", error=str(e))
+                # Don't fail startup on migration check error, DB might be fine
+
         if db.health_check():
             logger.info("database_ready")
         else:
@@ -105,7 +122,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.get_cors_origins_list(),
     allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -129,6 +146,7 @@ async def limit_request_size(request: Request, call_next):
 # ============================================================================
 
 # Include API routers
+app.include_router(auth_router, prefix="/api/v1")
 app.include_router(memory_router, prefix="/api/v1")
 app.include_router(chat_router, prefix="/api/v1")
 app.include_router(user_memory_router, prefix="/api/v1")

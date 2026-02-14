@@ -21,6 +21,8 @@ from app.observability import logger, metrics
 from app.memory.storage import store_memory
 from app.extraction.factory import get_extraction_provider
 from app.chat.providers.factory import get_chat_provider
+from app.auth.dependencies import get_current_user
+from fastapi import Depends
 
 
 router = APIRouter(prefix="/api/v1", tags=["chat"])
@@ -60,9 +62,8 @@ class Memory(BaseModel):
 @router.post("/chat", response_model=ChatResponse)
 async def chat(
     request: ChatRequest,
-    x_api_key: Optional[str] = Header(None),
+    current_user_id: str = Depends(get_current_user),
     x_tenant_id: Optional[str] = Header(None),
-    x_user_id: Optional[str] = Header(None)
 ):
     """
     Chat with AI assistant with full memory integration.
@@ -76,8 +77,8 @@ async def chat(
     """
     start_time = time.time()
     
-    # Extract user identity (priority: header > request body > generate)
-    user_id = x_user_id or request.user_id or f"user-{uuid.uuid4()}"
+    # Extract user identity (priority: JWT > request body > generate)
+    user_id = current_user_id or request.user_id or f"user-{uuid.uuid4()}"
     tenant_id = x_tenant_id or request.tenant_id or "default-tenant"
     session_id = request.session_id or f"session-{uuid.uuid4()}"
     

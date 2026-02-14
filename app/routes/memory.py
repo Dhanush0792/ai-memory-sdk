@@ -15,7 +15,8 @@ from app.models import (
     MemoryDeleteResponse,
     MemoryObject,
 )
-from app.middleware.auth import verify_api_key
+# from app.middleware.auth import verify_api_key  # Deprecated in V2
+from app.auth.dependencies import get_current_user
 from app.middleware.rate_limiter import rate_limit_middleware
 from app.memory.extractor import extract_memories, ExtractionError
 from app.memory.storage import (
@@ -34,7 +35,7 @@ router = APIRouter(prefix="/memory", tags=["memory"])
 @router.post("/ingest", response_model=MemoryIngestResponse)
 async def ingest_memory(
     request: MemoryIngestRequest,
-    api_key: str = Depends(verify_api_key)
+    user_id: str = Depends(get_current_user)
 ):
     """
     Ingest conversation text and extract structured memories.
@@ -56,7 +57,7 @@ async def ingest_memory(
     Requires: X-API-Key header
     """
     # V1.1: Rate limiting
-    await rate_limit_middleware(None, api_key)
+    await rate_limit_middleware(None, user_id)
     
     try:
         # Extract memories from conversation
@@ -67,9 +68,9 @@ async def ingest_memory(
             log_action(
                 tenant_id=request.tenant_id,
                 action_type="INGEST",
-                api_key=api_key,
+                api_key="jwt_auth",  # Placeholder for legacy field
                 success=False,
-                user_id=request.user_id,
+                user_id=user_id,
                 metadata={"reason": "no_triples_extracted"},
                 error_message="No memories extracted from conversation"
             )
@@ -163,10 +164,9 @@ async def ingest_memory(
 @router.get("/retrieve", response_model=MemoryRetrieveResponse)
 async def retrieve_memory(
     tenant_id: str,
-    user_id: str,
     query: str,
     limit: int = 10,
-    api_key: str = Depends(verify_api_key)
+    user_id: str = Depends(get_current_user)
 ):
     """
     Retrieve memories with deterministic relevance ranking.
@@ -264,7 +264,7 @@ async def retrieve_memory(
 @router.delete("/{memory_id}", response_model=MemoryDeleteResponse)
 async def delete_memory_endpoint(
     memory_id: UUID,
-    api_key: str = Depends(verify_api_key)
+    user_id: str = Depends(get_current_user)
 ):
     """
     Soft delete a memory (set is_active=false).

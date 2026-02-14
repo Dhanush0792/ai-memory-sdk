@@ -46,6 +46,22 @@ function setupEventListeners() {
     const clearSessionButton = document.getElementById('clearSession');
     const refreshButton = document.getElementById('refreshMemories');
     const closeModalButton = document.getElementById('closeModal');
+    const logoutButton = document.getElementById('logoutButton');
+
+    // Check for auth token
+    const token = localStorage.getItem('auth_token');
+    if (!token && window.location.pathname.endsWith('chat.html')) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    if (logoutButton) {
+        logoutButton.addEventListener('click', () => {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('memory_user_id');
+            window.location.href = 'login.html';
+        });
+    }
 
     // Send message
     sendButton.addEventListener('click', sendMessage);
@@ -95,16 +111,16 @@ async function sendMessage() {
 
     try {
         // Call chat API
+        const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-User-ID': userId,
+                'Authorization': `Bearer ${token}`,
                 'X-Tenant-ID': TENANT_ID
             },
             body: JSON.stringify({
                 message: message,
-                user_id: userId,
                 tenant_id: TENANT_ID,
                 session_id: sessionId
             })
@@ -181,9 +197,10 @@ function addMessage(role, content, metadata = null) {
  */
 async function loadMemories() {
     try {
+        const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/api/v1/user/memories?limit=100`, {
             headers: {
-                'X-User-ID': userId,
+                'Authorization': `Bearer ${token}`,
                 'X-Tenant-ID': TENANT_ID
             }
         });
@@ -263,10 +280,11 @@ async function deleteMemory(memoryId) {
     }
 
     try {
+        const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE_URL}/api/v1/user/memories/${memoryId}`, {
             method: 'DELETE',
             headers: {
-                'X-User-ID': userId,
+                'Authorization': `Bearer ${token}`,
                 'X-Tenant-ID': TENANT_ID
             }
         });
@@ -290,11 +308,12 @@ async function deleteMemory(memoryId) {
  */
 async function viewHistory(subject, predicate) {
     try {
+        const token = localStorage.getItem('auth_token');
         const response = await fetch(
             `${API_BASE_URL}/api/v1/user/memories/${encodeURIComponent(subject)}/${encodeURIComponent(predicate)}/history`,
             {
                 headers: {
-                    'X-User-ID': userId,
+                    'Authorization': `Bearer ${token}`,
                     'X-Tenant-ID': TENANT_ID
                 }
             }

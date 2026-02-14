@@ -10,6 +10,8 @@ from datetime import datetime
 from app.config import settings
 from app.observability import logger
 from app.database import db
+from app.auth.dependencies import get_current_user
+from fastapi import Depends
 
 
 router = APIRouter(prefix="/api/v1/user", tags=["user-memory"])
@@ -66,7 +68,7 @@ class VersionHistoryResponse(BaseModel):
 @router.get("/memories", response_model=MemoryListResponse)
 async def list_memories(
     x_tenant_id: str = Header(...),
-    x_user_id: str = Header(...),
+    user_id: str = Depends(get_current_user),
     scope: Optional[str] = None,
     limit: int = 100,
     offset: int = 0
@@ -81,7 +83,7 @@ async def list_memories(
     """
     logger.info(
         "list_memories_request",
-        user_id=x_user_id,
+        user_id=user_id,
         tenant_id=x_tenant_id,
         scope=scope,
         limit=limit,
@@ -99,7 +101,7 @@ async def list_memories(
                     FROM memories
                     WHERE tenant_id = %s AND user_id = %s
                 """
-                params = [x_tenant_id, x_user_id]
+                params = [x_tenant_id, user_id]
                 
                 if scope:
                     query += " AND scope = %s"
@@ -119,7 +121,7 @@ async def list_memories(
                     FROM memories
                     WHERE tenant_id = %s AND user_id = %s
                 """
-                count_params = [x_tenant_id, x_user_id]
+                count_params = [x_tenant_id, user_id]
                 
                 if scope:
                     count_query += " AND scope = %s"
@@ -146,12 +148,12 @@ async def list_memories(
                 
                 logger.info(
                     "list_memories_success",
-                    user_id=x_user_id,
+                    user_id=user_id,
                     count=len(memories)
                 )
                 
                 return MemoryListResponse(
-                    user_id=x_user_id,
+                    user_id=user_id,
                     tenant_id=x_tenant_id,
                     total_count=counts[0],
                     active_count=counts[1],
@@ -171,7 +173,7 @@ async def list_memories(
 async def delete_memory(
     memory_id: str,
     x_tenant_id: str = Header(...),
-    x_user_id: str = Header(...)
+    user_id: str = Depends(get_current_user)
 ):
     """
     Soft delete a memory (mark as inactive).
@@ -180,7 +182,7 @@ async def delete_memory(
     """
     logger.info(
         "delete_memory_request",
-        user_id=x_user_id,
+        user_id=user_id,
         tenant_id=x_tenant_id,
         memory_id=memory_id
     )
@@ -195,7 +197,7 @@ async def delete_memory(
                     FROM memories 
                     WHERE id = %s AND tenant_id = %s AND user_id = %s
                     """,
-                    (memory_id, x_tenant_id, x_user_id)
+                    (memory_id, x_tenant_id, user_id)
                 )
                 
                 memory = cur.fetchone()
@@ -224,7 +226,7 @@ async def delete_memory(
                     """,
                     (
                         x_tenant_id,
-                        x_user_id,
+                        user_id,
                         "delete_memory",
                         "memory",
                         memory_id,
@@ -236,7 +238,7 @@ async def delete_memory(
                 
                 logger.info(
                     "delete_memory_success",
-                    user_id=x_user_id,
+                    user_id=user_id,
                     memory_id=memory_id
                 )
                 
@@ -251,7 +253,7 @@ async def delete_memory(
     except Exception as e:
         logger.error(
             "delete_memory_failed",
-            user_id=x_user_id,
+            user_id=user_id,
             memory_id=memory_id,
             error=str(e)
         )
@@ -263,7 +265,7 @@ async def get_version_history(
     subject: str,
     predicate: str,
     x_tenant_id: str = Header(...),
-    x_user_id: str = Header(...)
+    user_id: str = Depends(get_current_user)
 ):
     """
     Get version history for a specific subject+predicate.
@@ -272,7 +274,7 @@ async def get_version_history(
     """
     logger.info(
         "version_history_request",
-        user_id=x_user_id,
+        user_id=user_id,
         subject=subject,
         predicate=predicate
     )
@@ -286,9 +288,9 @@ async def get_version_history(
                     FROM memories
                     WHERE tenant_id = %s AND user_id = %s 
                       AND subject = %s AND predicate = %s
-                    ORDER BY version DESC
+                    order by version DESC
                     """,
-                    (x_tenant_id, x_user_id, subject, predicate)
+                    (x_tenant_id, user_id, subject, predicate)
                 )
                 
                 rows = cur.fetchall()
@@ -313,7 +315,7 @@ async def get_version_history(
                 
                 logger.info(
                     "version_history_success",
-                    user_id=x_user_id,
+                    user_id=user_id,
                     subject=subject,
                     predicate=predicate,
                     version_count=len(versions)
@@ -331,7 +333,7 @@ async def get_version_history(
     except Exception as e:
         logger.error(
             "version_history_failed",
-            user_id=x_user_id,
+            user_id=user_id,
             subject=subject,
             predicate=predicate,
             error=str(e)

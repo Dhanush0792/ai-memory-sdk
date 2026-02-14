@@ -54,6 +54,11 @@ class Settings(BaseSettings):
     # AUTHENTICATION
     # ========================================================================
     api_key: str = Field(..., env="API_KEY")
+
+    # JWT Configuration
+    jwt_secret: str = Field(..., env="JWT_SECRET")
+    jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
+    access_token_expire_minutes: int = Field(default=60, env="ACCESS_TOKEN_EXPIRE_MINUTES")
     
     # ========================================================================
     # SECURITY SETTINGS (V1.1)

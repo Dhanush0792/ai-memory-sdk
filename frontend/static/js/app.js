@@ -227,6 +227,80 @@ if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     });
 }
 
+// ===== Authentication Handling =====
+const loginForm = document.getElementById('loginForm');
+const signupForm = document.getElementById('signupForm');
+const API_BASE_URL = window.location.origin;
+
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+
+        try {
+            submitBtn.textContent = 'Logging in...';
+            submitBtn.disabled = true;
+
+            const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.detail || 'Login failed');
+            }
+
+            localStorage.setItem('auth_token', data.access_token);
+            window.location.href = 'chat.html';
+
+        } catch (error) {
+            alert(error.message);
+            submitBtn.textContent = 'Login';
+            submitBtn.disabled = false;
+        }
+    });
+}
+
+if (signupForm) {
+    signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fullName = document.getElementById('fullName').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const submitBtn = signupForm.querySelector('button[type="submit"]');
+
+        try {
+            submitBtn.textContent = 'Creating Account...';
+            submitBtn.disabled = true;
+
+            const response = await fetch(`${API_BASE_URL}/api/v1/auth/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ full_name: fullName, email, password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.detail || 'Signup failed');
+            }
+
+            localStorage.setItem('auth_token', data.access_token);
+            window.location.href = 'chat.html';
+
+        } catch (error) {
+            alert(error.message);
+            submitBtn.textContent = 'Sign Up';
+            submitBtn.disabled = false;
+        }
+    });
+}
+
 // ===== Console Easter Egg =====
 console.log('%c🧠 AI Memory SDK', 'font-size: 20px; font-weight: bold; color: #6366F1;');
 console.log('%cPersistent memory for AI applications', 'font-size: 12px; color: #22D3EE;');
