@@ -38,7 +38,15 @@ class Database:
                 result = urlparse(conn_string)
                 hostname = result.hostname
                 if hostname:
-                    return socket.gethostbyname(hostname)
+                    # Use getaddrinfo to explicitly request IPv4 (AF_INET)
+                    # This is more robust than gethostbyname in some container environments
+                    addrs = socket.getaddrinfo(hostname, None, socket.AF_INET)
+                    if addrs:
+                        # Extract IP from the first result: (family, type, proto, canonname, sockaddr)
+                        # sockaddr is (address, port) for AF_INET
+                        ip = addrs[0][4][0]
+                        print(f"✅ Resolved {hostname} to IPv4: {ip}")
+                        return ip
             return None
         except Exception as e:
             # Silently fail and let psycopg handle it naturally if extraction fails
