@@ -33,20 +33,49 @@ class Database:
     def _resolve_to_ipv4(self, conn_string: str) -> Optional[str]:
         """Resolve hostname to IPv4 to avoid IPv6 issues on some platforms"""
         try:
-            # Handle standard URI format
+            hostname = None
+            port = 5432
+            
+            # Robust parsing of hostname from connection string
+            # Handle standard URI format: postgresql://user:pass@host:port/db
             if "://" in conn_string:
-                result = urlparse(conn_string)
-                hostname = result.hostname
-                if hostname:
-                    # Use getaddrinfo to explicitly request IPv4 (AF_INET)
-                    # This is more robust than gethostbyname in some container environments
-                    addrs = socket.getaddrinfo(hostname, None, socket.AF_INET)
-                    if addrs:
-                        # Extract IP from the first result: (family, type, proto, canonname, sockaddr)
-                        # sockaddr is (address, port) for AF_INET
-                        ip = addrs[0][4][0]
+                try:
+                    # Use specialized parsing if available, otherwise simple urlparse
+                    result = urlparse(conn_string)
+                    hostname = result.hostname
+                    if result.port:
+                        port = result.port
+                except Exception:
+                    pass
+            
+            # Fallback manual parsing if urlparse failed or yielded nothing (e.g. complex passwords)
+            if not hostname and "@" in conn_string:
+                # Assuming format ...@hostname:port/....
+                # Split by @, take the last part
+                after_at = conn_string.rsplit("@", 1)[1]
+                # Split by / to remove dbname
+                host_port = after_at.split("/")[0]
+                # Split by ? to remove params
+                host_port = host_port.split("?")[0]
+                
+                if ":" in host_port:
+                    hostname = host_port.split(":")[0]
+                else:
+                    hostname = host_port
+
+            if hostname:
+                print(f"🔍 Attempting to resolve IPv4 for hostname: {hostname}")
+                # Use getaddrinfo with AF_UNSPEC to catch ANY record, then filter for AF_INET
+                addrs = socket.getaddrinfo(hostname, port, 0, socket.SOCK_STREAM)
+                
+                for family, type, proto, canonname, sockaddr in addrs:
+                    if family == socket.AF_INET:
+                        ip = sockaddr[0]
                         print(f"✅ Resolved {hostname} to IPv4: {ip}")
                         return ip
+                        
+                print(f"⚠️ Could not find IPv4 address for {hostname} (Found only IPv6?)")
+            
             return None
         except Exception as e:
             # Silently fail and let psycopg handle it naturally if extraction fails
