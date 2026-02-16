@@ -4,320 +4,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Memory SDK - Persistent Memory for AI Applications</title>
+    <title>AI Memory SDK - Infrastructure for Intelligent Agents</title>
     <meta name="description"
-        content="Give your AI applications persistent memory. Store facts, preferences, and context across sessions.">
+        content="Production-grade persistent memory infrastructure for AI agents. Store facts, preferences, and events with a simple API.">
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="static/css/style.css">
 </head>
 
 <body>
-    <!-- Floating Memory Nodes Background -->
-    <div class="memory-space" id="memorySpace">
-        <svg class="floating-nodes" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
-            <!-- Memory Nodes -->
-            <g class="node-group" data-depth="1">
-                <circle class="memory-node" cx="150" cy="120" r="4" />
-                <circle class="memory-node" cx="280" cy="200" r="3" />
-                <circle class="memory-node" cx="420" cy="150" r="5" />
-                <circle class="memory-node" cx="580" cy="180" r="4" />
-                <circle class="memory-node" cx="720" cy="140" r="3" />
-                <circle class="memory-node" cx="880" cy="190" r="4" />
-                <circle class="memory-node" cx="1050" cy="160" r="5" />
-            </g>
-            <g class="node-group" data-depth="2">
-                <circle class="memory-node" cx="200" cy="350" r="3" />
-                <circle class="memory-node" cx="380" cy="420" r="4" />
-                <circle class="memory-node" cx="550" cy="380" r="3" />
-                <circle class="memory-node" cx="750" cy="440" r="5" />
-                <circle class="memory-node" cx="950" cy="400" r="4" />
-            </g>
-            <g class="node-group" data-depth="3">
-                <circle class="memory-node" cx="120" cy="580" r="4" />
-                <circle class="memory-node" cx="320" cy="640" r="3" />
-                <circle class="memory-node" cx="520" cy="600" r="4" />
-                <circle class="memory-node" cx="720" cy="660" r="5" />
-                <circle class="memory-node" cx="920" cy="620" r="3" />
-                <circle class="memory-node" cx="1100" cy="680" r="4" />
-            </g>
+    <div class="grid-overlay"></div>
 
-            <!-- Connecting Lines -->
-            <g class="connection-lines">
-                <line x1="150" y1="120" x2="280" y2="200" />
-                <line x1="280" y1="200" x2="420" y2="150" />
-                <line x1="420" y1="150" x2="580" y2="180" />
-                <line x1="580" y1="180" x2="720" y2="140" />
-                <line x1="720" y1="140" x2="880" y2="190" />
-                <line x1="200" y1="350" x2="380" y2="420" />
-                <line x1="380" y1="420" x2="550" y2="380" />
-                <line x1="550" y1="380" x2="750" y2="440" />
-                <line x1="280" y1="200" x2="200" y2="350" />
-                <line x1="580" y1="180" x2="550" y2="380" />
-                <line x1="720" y1="140" x2="750" y2="440" />
-            </g>
-        </svg>
-    </div>
-
-    <!-- Hero Section -->
-    <section class="hero">
+    <nav class="navbar">
         <div class="container">
-            <h1 class="hero-title">AI Memory SDK</h1>
-            <p class="hero-subtitle">Persistent memory for AI applications</p>
-            <div class="hero-problem">
-                <p>Large language models forget conversations</p>
-                <p>Context windows are limited and expensive</p>
-                <p>Developers rebuild memory systems repeatedly</p>
-            </div>
-            <p class="hero-tagline">AI Memory SDK provides persistent, structured memory for long-running AI systems.
-            </p>
-            <p class="hero-anchor">Memory should be a first-class system, not an afterthought.</p>
-            <div class="hero-cta">
-                <a href="signup.html" class="btn btn-primary">Get API Key</a>
-                <a href="https://ai-memory-sdk.onrender.com/docs" class="btn btn-secondary">Explore API Docs</a>
+            <a href="#" class="logo">AI Memory SDK</a>
+            <div class="nav-links">
+                <a href="#how-it-works">Architecture</a>
+                <a href="#features">Features</a>
+                <a href="#docs">Docs</a>
+                <a href="https://github.com/Dhanush0792/ai-memory-sdk" target="_blank" class="github-link">GitHub</a>
             </div>
         </div>
-    </section>
+    </nav>
 
-    <!-- Who Is This For? -->
-    <section class="audience">
-        <div class="container">
-            <h2 class="section-title">Who Is This For?</h2>
-            <div class="audience-list">
-                <p class="audience-item">AI product builders</p>
-                <p class="audience-item">Chatbot and assistant developers</p>
-                <p class="audience-item">Agent frameworks</p>
-                <p class="audience-item">SaaS applications using LLMs</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- How Memory Works -->
-    <section class="how-it-works" id="how-it-works">
-        <div class="container">
-            <h2 class="section-title">How Memory Works</h2>
-            <div class="process-flow">
-                <div class="process-step" data-step="1">
-                    <div class="step-node">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                    </div>
-                    <h3>User Input</h3>
-                    <p>AI receives conversation or data</p>
-                    <p>Extract meaningful facts from conversations</p>
-                </div>
-
-                <div class="flow-connector">
-                    <svg viewBox="0 0 100 2" preserveAspectRatio="none">
-                        <line x1="0" y1="1" x2="100" y2="1" stroke="url(#gradient)" stroke-width="2" />
-                        <defs>
-                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" style="stop-color:#6366F1;stop-opacity:0.3" />
-                                <stop offset="100%" style="stop-color:#22D3EE;stop-opacity:0.3" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                </div>
-
-                <div class="process-step" data-step="2">
-                    <div class="step-node">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M12 1v6m0 6v6m-9-9h6m6 0h6"></path>
-                        </svg>
-                    </div>
-                    <h3>Memory Extraction</h3>
-                    <p>Facts and context automatically extracted</p>
-                    <p>Store memory with metadata and timestamps</p>
-                </div>
-
-                <div class="flow-connector">
-                    <svg viewBox="0 0 100 2" preserveAspectRatio="none">
-                        <line x1="0" y1="1" x2="100" y2="1" stroke="url(#gradient)" stroke-width="2" />
-                    </svg>
-                </div>
-
-                <div class="process-step" data-step="3">
-                    <div class="step-node">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                        </svg>
-                    </div>
-                    <h3>Context Retrieval</h3>
-                    <p>Relevant memories injected into responses</p>
-                    <p>Inject only relevant memory back into prompts</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Memory Visualization Demo -->
-    <section class="memory-demo" id="demo">
-        <div class="container">
-            <h2 class="section-title">See Memory in Action</h2>
-            <div class="demo-container">
-                <div class="demo-input">
-                    <div class="demo-label">User Message</div>
-                    <div class="demo-content">
-                        <p>"I work at a fintech startup"</p>
+    <main>
+        <!-- 1. HERO SECTION -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>Memory Infrastructure<br>for AI Systems</h1>
+                    <p class="hero-subtext">
+                        Persist user context across sessions.<br>
+                        Extract structured memory from conversations.<br>
+                        Production-ready API for intelligent applications.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#docs" class="btn btn-primary">View API Docs</a>
+                        <a href="https://github.com/Dhanush0792/ai-memory-sdk" target="_blank"
+                            class="btn btn-secondary">GitHub</a>
                     </div>
                 </div>
-
-                <div class="demo-arrow">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                </div>
-
-                <div class="demo-output">
-                    <div class="demo-label">Stored Memory</div>
-                    <div class="demo-content">
-                        <div class="memory-item">
-                            <span class="memory-key">Job:</span>
-                            <span class="memory-value">Fintech startup</span>
+                <div class="hero-visual">
+                    <div class="code-window">
+                        <div class="window-header">
+                            <div class="dot red"></div>
+                            <div class="dot yellow"></div>
+                            <div class="dot green"></div>
+                            <span class="file-name">example.py</span>
                         </div>
-                        <div class="memory-item">
-                            <span class="memory-key">Domain:</span>
-                            <span class="memory-value">Finance</span>
+                        <pre><code id="typing-code" class="language-python"></code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. HOW IT WORKS (Architecture) -->
+        <section id="how-it-works" class="section">
+            <div class="container">
+                <h2 class="section-badge">Architecture</h2>
+                <h3 class="section-title">System Flow</h3>
+
+                <div class="architecture-diagram">
+                    <div class="arch-node">User Input</div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-node">AI App</div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-node active">AI Memory SDK</div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-node db">PostgreSQL</div>
+                </div>
+
+                <div class="arch-steps">
+                    <div class="step-card">
+                        <span class="step-num">01</span>
+                        <h4>Extraction</h4>
+                        <p>LLM-powered extraction logic identifies facts and preferences from unstructured text.</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-num">02</span>
+                        <h4>Persistence</h4>
+                        <p>Structured data is stored with vector embeddings and metadata in PostgreSQL.</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-num">03</span>
+                        <h4>Retrieval</h4>
+                        <p>Semantic search + time-weighted retrieval fetches relevant context.</p>
+                    </div>
+                    <div class="step-card">
+                        <span class="step-num">04</span>
+                        <h4>Injection</h4>
+                        <p>Context is injected into the prompt before the final LLM generation.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. CORE FEATURES -->
+        <section id="features" class="section">
+            <div class="container">
+                <h2 class="section-badge">Capabilities</h2>
+                <h3 class="section-title">Production-Grade Infrastructure</h3>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h4>Multi-Tenant Isolation</h4>
+                        <p>Strict data separation per user_id or workspace_id. Production-ready for SaaS.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Structured Memory Extraction</h4>
+                        <p>Automatically converts "I like red wine" into `{"category": "preference", "value": "red
+                            wine"}`.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Real-Time Context Retrieval</h4>
+                        <p>Sub-100ms vector search to retrieve relevant memories for every prompt.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Role-Based Access Control</h4>
+                        <p>Granular scopes for read/write access. secure API key management built-in.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Audit Logging</h4>
+                        <p>Comprehensive immutable logs for compliance and debugging memory operations.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>GDPR-Compliant Lifecycle</h4>
+                        <p>Built-in "Right to be Forgotten" endpoints. Delete user data instantly.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. REAL USE CASES -->
+        <section class="section bg-deep">
+            <div class="container">
+                <h2 class="section-badge">Use Cases</h2>
+                <h3 class="section-title">Built for Intelligent Agents</h3>
+
+                <div class="use-cases-list">
+                    <div class="use-case-item">
+                        <div class="uc-content">
+                            <h4>Customer Support AI</h4>
+                            <p>Remember user issue history, plan tier, and sentiment across tickets to reduce resolution
+                                time.</p>
                         </div>
-                        <div class="hidden md:flex gap-6 items-center">
-                            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up"
-                                style="animation-delay: 0.4s">
-                                <a href="login.html"
-                                    class="group relative px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full font-semibold transition-all shadow-[0_0_20px_rgba(99,102,241,0.5)] hover:shadow-[0_0_30px_rgba(99,102,241,0.7)] flex items-center gap-2">
-                                    <span>Access Console</span>
-                                    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                    </svg>
-                                </a>
-                                <a href="https://github.com/Dhanush0792/ai-memory-sdk" target="_blank"
-                                    class="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-full font-semibold transition-all flex items-center gap-2">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                        <path fill-rule="evenodd" clip-rule="evenodd"
-                                            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z">
-                                        </path>
-                                    </svg>
-                                    <span>View on GitHub</span>
-                                </a>
-                            </div>
+                    </div>
+                    <div class="use-case-item">
+                        <div class="uc-content">
+                            <h4>Personal AI Assistant</h4>
+                            <p>Build a truly personalized companion that remembers birthdays, preferences, and
+                                relationships.</p>
+                        </div>
+                    </div>
+                    <div class="use-case-item">
+                        <div class="uc-content">
+                            <h4>Educational Tutor</h4>
+                            <p>Track student progress, weak areas, and learning style to adapt curriculum dynamically.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="use-case-item">
+                        <div class="uc-content">
+                            <h4>Enterprise AI Tools</h4>
+                            <p>Context-aware internal tools that remember project details and employee roles.</p>
                         </div>
                     </div>
                 </div>
-    </section>
-
-    <!-- What Makes This Different? -->
-    <section class="differentiators">
-        <div class="container">
-            <h2 class="section-title">What Makes This Different?</h2>
-            <div class="diff-list">
-                <p>Temporal memory, not just embeddings</p>
-                <p>GDPR-ready delete and export</p>
-                <p>Structured extraction instead of raw logs</p>
-                <p>SDK-first, backend-agnostic design</p>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Features -->
-    <section class="features">
-        <div class="container">
-            <h2 class="section-title">Built for Production</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2v20M2 12h20"></path>
-                            <circle cx="12" cy="12" r="4"></circle>
-                        </svg>
-                    </div>
-                    <h3>Persistent Memory</h3>
-                    <p>Memories persist across sessions and conversations</p>
-                </div>
+        <!-- 5. TECHNICAL DEPTH -->
+        <section class="section">
+            <div class="container">
+                <h2 class="section-badge">Technical Depth</h2>
+                <h3 class="section-title">Engineered by Systems Experts</h3>
 
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="8.5" cy="7" r="4"></circle>
-                            <polyline points="17 11 19 13 23 9"></polyline>
-                        </svg>
+                <div class="tech-grid">
+                    <div class="tech-col">
+                        <h4 class="code-label">Project Structure</h4>
+                        <pre class="code-block file-tree">
+app/
+ ├── routes/
+ │   ├── v1/memory.py
+ │   └── v1/auth.py
+ ├── core/
+ │   ├── extraction.py
+ │   └── retrieval.py
+ ├── database/
+ │   └── session.py
+ └── main.py</pre>
                     </div>
-                    <h3>User Scoped</h3>
-                    <p>Isolated memory per user or session</p>
-                </div>
 
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                        </svg>
+                    <div class="tech-col">
+                        <h4 class="code-label">API Request</h4>
+                        <pre class="code-block language-bash">
+curl -X POST https://api.memory.dev/v1/memory \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "u_8392",
+    "text": "User prefers dark mode."
+  }'</pre>
                     </div>
-                    <h3>GDPR Compliant</h3>
-                    <p>Export and delete user data on demand</p>
-                </div>
 
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="16 18 22 12 16 6"></polyline>
-                            <polyline points="8 6 2 12 8 18"></polyline>
-                        </svg>
+                    <div class="tech-col">
+                        <h4 class="code-label">Database Schema</h4>
+                        <pre class="code-block language-sql">
+CREATE TABLE memories (
+  id UUID PRIMARY KEY,
+  user_id VARCHAR(255) INDEX,
+  content TEXT NOT NULL,
+  embedding VECTOR(1536),
+  created_at TIMESTAMPTZ,
+  metadata JSONB DEFAULT '{}'
+);</pre>
                     </div>
-                    <h3>API First</h3>
-                    <p>Clean REST API with comprehensive documentation</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path
-                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
-                            </path>
-                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                        </svg>
-                    </div>
-                    <h3>Flexible Deployment</h3>
-                    <p>Works locally or in the cloud with PostgreSQL</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
-                        </svg>
-                    </div>
-                    <h3>LLM Powered</h3>
-                    <p>Automatic memory extraction using OpenAI or Anthropic</p>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Try It Now -->
-    <section class="cta-section">
-        <div class="container">
-            <h2 class="section-title">Start Building Today</h2>
-            <p class="cta-description">Get your free API key in seconds. No credit card required.</p>
-            <div class="cta-button-wrapper">
-                <a href="signup.html" class="btn btn-primary">Get API Key</a>
+        <!-- 6. SECURITY & COMPLIANCE -->
+        <section class="section">
+            <div class="container">
+                <div class="security-panel">
+                    <div class="sec-content">
+                        <h2 class="section-badge">Security</h2>
+                        <h3 class="section-title">Enterprise-Grade Security</h3>
+                        <ul class="feature-list">
+                            <li>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                </svg>
+                                <span>Argon2id API key hashing</span>
+                            </li>
+                            <li>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                </svg>
+                                <span>JWT-based authentication</span>
+                            </li>
+                            <li>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                                    <line x1="12" y1="22.08" x2="12" y2="12" />
+                                </svg>
+                                <span>Field-level encryption (optional)</span>
+                            </li>
+                            <li>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                    <line x1="16" y1="13" x2="8" y2="13" />
+                                    <line x1="16" y1="17" x2="8" y2="17" />
+                                    <polyline points="10 9 9 9 8 9" />
+                                </svg>
+                                <span>Audit logging</span>
+                            </li>
+                            <li>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="8.5" cy="7" r="4" />
+                                    <line x1="18" y1="8" x2="23" y2="13" />
+                                    <line x1="23" y1="8" x2="18" y2="13" />
+                                </svg>
+                                <span>Immediate token invalidation</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Footer -->
-    <footer class="footer">
+        <!-- 7. DEVELOPER EXPERIENCE -->
+        <section class="section bg-deep">
+            <div class="container center-text">
+                <h2 class="section-badge">Get Started</h2>
+                <h3 class="section-title">Integrate in Minutes</h3>
+
+                <div class="quick-start">
+                    <div class="install-bar">
+                        <span class="prompt">$</span>
+                        <span class="command">pip install ai-memory-sdk</span>
+                        <button class="copy-btn" aria-label="Copy command">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="code-steps">
+                        <div class="step-line">
+                            <span class="line-num">1</span>
+                            <span class="code">from ai_memory import MemorySDK</span>
+                        </div>
+                        <div class="step-line">
+                            <span class="line-num">2</span>
+                            <span class="code">memory = MemorySDK(api_key="your_key")</span>
+                        </div>
+                        <div class="step-line">
+                            <span class="line-num">3</span>
+                            <span class="code">memory.add(user_id="user_1", text="Learned Python today")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 8. FOOTER -->
+    <footer>
         <div class="container">
             <div class="footer-content">
-                <div class="footer-brand">AI Memory SDK</div>
-                <div class="footer-links">
-                    <a href="https://ai-memory-sdk.onrender.com/docs">API Documentation</a>
-                    <a href="https://github.com/Dhanush0792/ai-memory-sdk">GitHub</a>
+                <div class="footer-col">
+                    <span class="footer-logo">AI Memory SDK</span>
+                    <span class="status-indicator"><span class="status-dot"></span> Operational</span>
                 </div>
+                <div class="footer-links">
+                    <a href="#">Documentation</a>
+                    <a href="https://github.com/Dhanush0792/ai-memory-sdk">GitHub</a>
+                    <a href="#">API Reference</a>
+                    <a href="#">Status</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 AI Memory SDK. Open Source Infrastructure.</p>
             </div>
         </div>
     </footer>
