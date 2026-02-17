@@ -54,33 +54,16 @@ llm.generate(
     });
 
     // Intersection Observer for fade-in animations
-    const observerOptions = {
-        threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries) => {
+    const observer = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                observer.unobserve(entry.target);
+                entry.target.classList.add("visible");
+                observer.unobserve(entry.target); // critical
             }
         });
-    }, observerOptions);
+    }, { threshold: 0.2 });
 
-    document.querySelectorAll('.section, .feature-card, .step-card').forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(20px)';
-        el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+    document.querySelectorAll(".animate-on-scroll").forEach(el => {
         observer.observe(el);
     });
-
-    // Add visible class styling
-    const style = document.createElement('style');
-    style.innerHTML = `
-        .visible {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
-        }
-    `;
-    document.head.appendChild(style);
 });

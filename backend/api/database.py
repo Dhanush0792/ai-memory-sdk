@@ -97,6 +97,11 @@ class Database:
         """Initialize database schema with automatic migrations"""
         with self._get_conn() as conn:
             with conn.cursor() as cur:
+                # Debugging: Check current usage schema
+                cur.execute("SELECT current_schema()")
+                current_schema = cur.fetchone()[0]
+                print(f"🔍 Database Current Schema: {current_schema}")
+
                 # Check if memories table exists in public schema
                 cur.execute("""
                     SELECT table_name 
@@ -108,7 +113,7 @@ class Database:
                 
                 if table_exists:
                     # Table exists - check for missing columns and migrate
-                    print("🔄 Checking database schema for migrations...")
+                    print("🔄 Checking database schema for migrations (public.memories)...")
                     
                     # Get all existing columns in public schema
                     cur.execute("""
@@ -117,6 +122,7 @@ class Database:
                         WHERE table_name='memories' AND table_schema='public'
                     """)
                     existing_columns = {row[0] for row in cur.fetchall()}
+                    print(f"📊 Found existing columns: {existing_columns}")
                     
                     migrations_needed = []
                     
@@ -152,100 +158,100 @@ class Database:
                         if 'owner_id' in migrations_needed:
                             print("  → Adding owner_id column...")
                             cur.execute("""
-                                ALTER TABLE memories 
+                                ALTER TABLE public.memories 
                                 ADD COLUMN IF NOT EXISTS owner_id TEXT
                             """)
                             cur.execute("""
-                                UPDATE memories 
+                                UPDATE public.memories 
                                 SET owner_id = user_id 
                                 WHERE owner_id IS NULL
                             """)
                             cur.execute("""
-                                ALTER TABLE memories 
+                                ALTER TABLE public.memories 
                                 ALTER COLUMN owner_id SET NOT NULL
                             """)
                             cur.execute("""
-                                CREATE INDEX IF NOT EXISTS idx_owner_id ON memories(owner_id)
+                                CREATE INDEX IF NOT EXISTS idx_owner_id ON public.memories(owner_id)
                             """)
                         
                         # Add memory_type column (CRITICAL FIX)
                         if 'memory_type' in migrations_needed:
                             print("  → Adding memory_type column...")
                             cur.execute("""
-                                ALTER TABLE memories 
+                                ALTER TABLE public.memories 
                                 ADD COLUMN IF NOT EXISTS memory_type TEXT DEFAULT 'system'
                             """)
                             cur.execute("""
-                                ALTER TABLE memories 
+                                ALTER TABLE public.memories 
                                 ADD CONSTRAINT check_memory_type 
                                 CHECK (memory_type IN ('fact', 'preference', 'event', 'system'))
                             """)
                             cur.execute("""
-                                UPDATE memories 
+                                UPDATE public.memories 
                                 SET memory_type = 'system' 
                                 WHERE memory_type IS NULL
                             """)
                             cur.execute("""
-                                ALTER TABLE memories 
+                                ALTER TABLE public.memories 
                                 ALTER COLUMN memory_type SET NOT NULL
                             """)
                             cur.execute("""
-                                CREATE INDEX IF NOT EXISTS idx_type ON memories(memory_type)
+                                CREATE INDEX IF NOT EXISTS idx_type ON public.memories(memory_type)
                             """)
 
                         # Add key/value/metadata/confidence/importance
                         if 'key' in migrations_needed:
                              print("  → Adding key column...")
-                             cur.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS key TEXT")
+                             cur.execute("ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS key TEXT")
                         
                         if 'value' in migrations_needed:
                              print("  → Adding value column...")
-                             cur.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS value JSONB")
+                             cur.execute("ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS value JSONB")
 
                         if 'metadata' in migrations_needed:
                              print("  → Adding metadata column...")
-                             cur.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'")
+                             cur.execute("ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'")
 
                         if 'confidence' in migrations_needed:
                              print("  → Adding confidence column...")
-                             cur.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS confidence REAL DEFAULT 1.0")
+                             cur.execute("ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS confidence REAL DEFAULT 1.0")
 
                         if 'importance' in migrations_needed:
                              print("  → Adding importance column...")
-                             cur.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS importance INTEGER")
+                             cur.execute("ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS importance INTEGER")
 
                         # Add is_deleted column
                         if 'is_deleted' in migrations_needed:
                             print("  → Adding is_deleted column...")
                             cur.execute("""
-                                ALTER TABLE memories 
+                                ALTER TABLE public.memories 
                                 ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE
                             """)
                             cur.execute("""
-                                UPDATE memories 
+                                UPDATE public.memories 
                                 SET is_deleted = FALSE 
                                 WHERE is_deleted IS NULL
                             """)
                             cur.execute("""
-                                CREATE INDEX IF NOT EXISTS idx_is_deleted ON memories(is_deleted)
+                                CREATE INDEX IF NOT EXISTS idx_is_deleted ON public.memories(is_deleted)
                             """)
                         
                         # Add expires_at column
                         if 'expires_at' in migrations_needed:
                             print("  → Adding expires_at column...")
                             cur.execute("""
-                                ALTER TABLE memories 
+                                ALTER TABLE public.memories 
                                 ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP
                             """)
                             cur.execute("""
-                                CREATE INDEX IF NOT EXISTS idx_expires_at ON memories(expires_at)
+                                CREATE INDEX IF NOT EXISTS idx_expires_at ON public.memories(expires_at)
                             """)
                         
                         # Add ttl_seconds column
                         if 'ttl_seconds' in migrations_needed:
                             print("  → Adding ttl_seconds column...")
                             cur.execute("""
-                                ALTER TABLE memories 
+                                ALTER TABLE public.memories 
                                 ADD COLUMN IF NOT EXISTS ttl_seconds INTEGER
                             """)
                         
@@ -253,11 +259,11 @@ class Database:
                         if 'ingestion_mode' in migrations_needed:
                             print("  → Adding ingestion_mode column...")
                             cur.execute("""
-                                ALTER TABLE memories 
+                                ALTER TABLE public.memories 
                                 ADD COLUMN IF NOT EXISTS ingestion_mode TEXT DEFAULT 'explicit'
                             """)
                             cur.execute("""
-                                UPDATE memories 
+                                UPDATE public.memories 
                                 SET ingestion_mode = 'explicit' 
                                 WHERE ingestion_mode IS NULL
                             """)
@@ -269,7 +275,7 @@ class Database:
                 
                 # Now create/update tables with full schema
                 cur.execute("""
-                    CREATE TABLE IF NOT EXISTS memories (
+                    CREATE TABLE IF NOT EXISTS public.memories (
                         id TEXT PRIMARY KEY,
                         owner_id TEXT NOT NULL,
                         user_id TEXT NOT NULL,
@@ -288,13 +294,13 @@ class Database:
                         ingestion_mode TEXT DEFAULT 'explicit' CHECK (ingestion_mode IN ('explicit', 'rules'))
                     );
                     
-                    CREATE INDEX IF NOT EXISTS idx_owner_id ON memories(owner_id);
-                    CREATE INDEX IF NOT EXISTS idx_user_id ON memories(user_id);
-                    CREATE INDEX IF NOT EXISTS idx_type ON memories(memory_type);
-                    CREATE INDEX IF NOT EXISTS idx_is_deleted ON memories(is_deleted);
-                    CREATE INDEX IF NOT EXISTS idx_expires_at ON memories(expires_at);
+                    CREATE INDEX IF NOT EXISTS idx_owner_id ON public.memories(owner_id);
+                    CREATE INDEX IF NOT EXISTS idx_user_id ON public.memories(user_id);
+                    CREATE INDEX IF NOT EXISTS idx_type ON public.memories(memory_type);
+                    CREATE INDEX IF NOT EXISTS idx_is_deleted ON public.memories(is_deleted);
+                    CREATE INDEX IF NOT EXISTS idx_expires_at ON public.memories(expires_at);
                     
-                    CREATE TABLE IF NOT EXISTS audit_logs (
+                    CREATE TABLE IF NOT EXISTS public.audit_logs (
                         id TEXT PRIMARY KEY,
                         user_id TEXT NOT NULL,
                         action TEXT NOT NULL,
@@ -303,7 +309,7 @@ class Database:
                         metadata JSONB DEFAULT '{}'
                     );
                     
-                    CREATE TABLE IF NOT EXISTS api_keys (
+                    CREATE TABLE IF NOT EXISTS public.api_keys (
                         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         key_hash TEXT NOT NULL UNIQUE,
                         owner_id TEXT NOT NULL,
@@ -315,13 +321,13 @@ class Database:
                         last_used_at TIMESTAMP
                     );
                     
-                    CREATE INDEX IF NOT EXISTS idx_key_hash ON api_keys(key_hash);
-                    CREATE INDEX IF NOT EXISTS idx_api_keys_owner_id ON api_keys(owner_id);
-                    CREATE INDEX IF NOT EXISTS idx_is_active ON api_keys(is_active);
+                    CREATE INDEX IF NOT EXISTS idx_key_hash ON public.api_keys(key_hash);
+                    CREATE INDEX IF NOT EXISTS idx_api_keys_owner_id ON public.api_keys(owner_id);
+                    CREATE INDEX IF NOT EXISTS idx_is_active ON public.api_keys(is_active);
                     
                     CREATE EXTENSION IF NOT EXISTS "pgcrypto";
                     
-                    CREATE TABLE IF NOT EXISTS users (
+                    CREATE TABLE IF NOT EXISTS public.users (
                         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         email VARCHAR(255) UNIQUE NOT NULL,
                         name VARCHAR(255),

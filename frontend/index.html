@@ -65,12 +65,12 @@
         </section>
 
         <!-- 2. HOW IT WORKS (Architecture) -->
-        <section id="how-it-works" class="section">
+        <section id="how-it-works" class="section animate-on-scroll">
             <div class="container">
                 <h2 class="section-badge">Architecture</h2>
                 <h3 class="section-title">System Flow</h3>
 
-                <div class="architecture-diagram">
+                <div class="architecture-diagram animate-on-scroll">
                     <div class="arch-node">User Input</div>
                     <div class="arch-arrow">→</div>
                     <div class="arch-node">AI App</div>
@@ -81,22 +81,22 @@
                 </div>
 
                 <div class="arch-steps">
-                    <div class="step-card">
+                    <div class="step-card animate-on-scroll">
                         <span class="step-num">01</span>
                         <h4>Extraction</h4>
                         <p>LLM-powered extraction logic identifies facts and preferences from unstructured text.</p>
                     </div>
-                    <div class="step-card">
+                    <div class="step-card animate-on-scroll">
                         <span class="step-num">02</span>
                         <h4>Persistence</h4>
                         <p>Structured data is stored with vector embeddings and metadata in PostgreSQL.</p>
                     </div>
-                    <div class="step-card">
+                    <div class="step-card animate-on-scroll">
                         <span class="step-num">03</span>
                         <h4>Retrieval</h4>
                         <p>Semantic search + time-weighted retrieval fetches relevant context.</p>
                     </div>
-                    <div class="step-card">
+                    <div class="step-card animate-on-scroll">
                         <span class="step-num">04</span>
                         <h4>Injection</h4>
                         <p>Context is injected into the prompt before the final LLM generation.</p>
@@ -105,37 +105,51 @@
             </div>
         </section>
 
-        <!-- 3. CORE FEATURES -->
-        <section id="features" class="section">
+        <!-- 3. COMPARISON (Why AI Memory SDK) -->
+        <section id="features" class="section animate-on-scroll">
             <div class="container">
-                <h2 class="section-badge">Capabilities</h2>
-                <h3 class="section-title">Production-Grade Infrastructure</h3>
+                <h2 class="section-badge">Why AI Memory SDK</h2>
+                <h3 class="section-title">Infrastructure vs. Ad-Hoc</h3>
 
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <h4>Multi-Tenant Isolation</h4>
-                        <p>Strict data separation per user_id or workspace_id. Production-ready for SaaS.</p>
+                <div class="features-tree">
+                    <!-- LEFT SIDE: AI Memory SDK -->
+                    <div class="tree-col primary animate-on-scroll">
+                        <div class="tree-header">
+                            <h4>AI Memory SDK</h4>
+                            <p>Production-Grade Infrastructure</p>
+                        </div>
+                        <ul class="tree-list">
+                            <li class="tree-item">
+                                Persistent Structured Memory
+                                <ul class="tree-list tree-nested">
+                                    <li class="tree-item">Subject–Predicate–Object schema</li>
+                                    <li class="tree-item">Version control</li>
+                                    <li class="tree-item">Conflict resolution</li>
+                                </ul>
+                            </li>
+                            <li class="tree-item">Multi-Tenant Isolation</li>
+                            <li class="tree-item">Audit Logging</li>
+                            <li class="tree-item">Deterministic Retrieval</li>
+                            <li class="tree-item">GDPR Controls</li>
+                            <li class="tree-item">Horizontal Scaling (Redis)</li>
+                            <li class="tree-item">Production-Grade Security</li>
+                        </ul>
                     </div>
-                    <div class="feature-card">
-                        <h4>Structured Memory Extraction</h4>
-                        <p>Automatically converts "I like red wine" into `{"category": "preference", "value": "red
-                            wine"}`.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>Real-Time Context Retrieval</h4>
-                        <p>Sub-100ms vector search to retrieve relevant memories for every prompt.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>Role-Based Access Control</h4>
-                        <p>Granular scopes for read/write access. secure API key management built-in.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>Audit Logging</h4>
-                        <p>Comprehensive immutable logs for compliance and debugging memory operations.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>GDPR-Compliant Lifecycle</h4>
-                        <p>Built-in "Right to be Forgotten" endpoints. Delete user data instantly.</p>
+
+                    <!-- RIGHT SIDE: Typical AI Apps -->
+                    <div class="tree-col animate-on-scroll">
+                        <div class="tree-header">
+                            <h4>Typical AI Apps</h4>
+                            <p>Basic Implementation</p>
+                        </div>
+                        <ul class="tree-list">
+                            <li class="tree-item">Stateless Chat</li>
+                            <li class="tree-item">Context window limited</li>
+                            <li class="tree-item">No structured memory</li>
+                            <li class="tree-item">No version tracking</li>
+                            <li class="tree-item">No audit logs</li>
+                            <li class="tree-item">Session resets</li>
+                        </ul>
                     </div>
                 </div>
             </div>
