@@ -97,11 +97,11 @@ class Database:
         """Initialize database schema with automatic migrations"""
         with self._get_conn() as conn:
             with conn.cursor() as cur:
-                # Check if memories table exists
+                # Check if memories table exists in public schema
                 cur.execute("""
                     SELECT table_name 
                     FROM information_schema.tables 
-                    WHERE table_name='memories'
+                    WHERE table_name='memories' AND table_schema='public'
                 """)
                 
                 table_exists = cur.fetchone() is not None
@@ -110,11 +110,11 @@ class Database:
                     # Table exists - check for missing columns and migrate
                     print("🔄 Checking database schema for migrations...")
                     
-                    # Get all existing columns
+                    # Get all existing columns in public schema
                     cur.execute("""
                         SELECT column_name 
                         FROM information_schema.columns 
-                        WHERE table_name='memories'
+                        WHERE table_name='memories' AND table_schema='public'
                     """)
                     existing_columns = {row[0] for row in cur.fetchall()}
                     
