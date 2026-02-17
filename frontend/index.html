@@ -158,34 +158,61 @@
         <!-- 4. PRODUCTION INFRASTRUCTURE -->
         <section class="section animate-on-scroll">
             <div class="container">
-                <h2 class="section-badge">Infrastructure</h2>
+                <h2 class="section-badge">SYSTEM DESIGN</h2>
                 <h3 class="section-title">Built for Production AI Systems</h3>
+                <p class="section-subtext">Deterministic memory infrastructure designed for reliability, scale, and
+                    control.</p>
 
-                <div class="infra-grid">
-                    <div class="feature-card">
-                        <h4>Deterministic Memory Engine</h4>
+                <div class="infrastructure-stack">
+                    <!-- Layer 1: Application -->
+                    <div class="infrastructure-layer">
+                        <div class="layer-content">
+                            <h4>Application Layer</h4>
+                            <p>Interface layer for AI applications interacting with memory.</p>
+                        </div>
                         <ul class="infra-list">
-                            <li>Version-controlled updates</li>
-                            <li>Conflict-safe writes</li>
-                            <li>Deterministic ranking</li>
+                            <li>REST API & SDK Integration</li>
+                            <li>Multi-tenant Isolation</li>
+                            <li>Stateless Container Deployment</li>
                         </ul>
                     </div>
-                    <div class="feature-card" style="transition-delay: 100ms;">
-                        <h4>Enterprise-Grade Infrastructure</h4>
+
+                    <!-- Layer 2: Memory Engine -->
+                    <div class="infrastructure-layer">
+                        <div class="layer-content">
+                            <h4>Memory Engine</h4>
+                            <p>Structured subject–predicate–object persistence with controlled mutation.</p>
+                        </div>
                         <ul class="infra-list">
-                            <li>Multi-tenant schema</li>
-                            <li>Redis-backed rate limiting</li>
-                            <li>Lock-safe transactions</li>
-                            <li>Audit logging</li>
+                            <li>Deterministic Extraction</li>
+                            <li>Version-Controlled Updates</li>
+                            <li>Conflict-Safe Writes</li>
                         </ul>
                     </div>
-                    <div class="feature-card" style="transition-delay: 200ms;">
-                        <h4>Security by Default</h4>
+
+                    <!-- Layer 3: Data -->
+                    <div class="infrastructure-layer">
+                        <div class="layer-content">
+                            <h4>Data Layer</h4>
+                            <p>Reliable persistence with predictable retrieval performance.</p>
+                        </div>
                         <ul class="infra-list">
-                            <li>Argon2id API key hashing</li>
-                            <li>JWT authentication</li>
-                            <li>Role-based access</li>
-                            <li>GDPR memory deletion</li>
+                            <li>PostgreSQL Storage</li>
+                            <li>Indexed Retrieval</li>
+                            <li>TTL & Cleanup Policies</li>
+                        </ul>
+                    </div>
+
+                    <!-- Layer 4: Security -->
+                    <div class="infrastructure-layer">
+                        <div class="layer-content">
+                            <h4>Security & Governance</h4>
+                            <p>Security-first architecture designed for production compliance.</p>
+                        </div>
+                        <ul class="infra-list">
+                            <li>JWT Authentication</li>
+                            <li>Argon2id API Key Hashing</li>
+                            <li>Audit Logging & Role-Based Access</li>
                         </ul>
                     </div>
                 </div>
