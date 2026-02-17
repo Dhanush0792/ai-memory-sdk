@@ -19,6 +19,7 @@
 </head>
 
 <body>
+    <div class="cursor-glow"></div>
     <div class="grid-overlay"></div>
 
     <nav class="navbar">
@@ -301,6 +302,18 @@
     </footer>
 
     <script src="static/js/app.js"></script>
+    <script>
+        if (window.innerWidth > 768) {
+            const glow = document.querySelector(".cursor-glow");
+
+            document.addEventListener("mousemove", (e) => {
+                glow.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+            });
+        } else {
+            const glow = document.querySelector(".cursor-glow");
+            if (glow) glow.style.display = "none";
+        }
+    </script>
 </body>
 
 </html>

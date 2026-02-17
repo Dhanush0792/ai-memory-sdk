@@ -32,6 +32,34 @@ html {
 body {
     line-height: 1.5;
     overflow-x: hidden;
+    position: relative;
+}
+
+.main-content,
+section,
+nav,
+footer {
+    position: relative;
+    z-index: 1;
+}
+
+/* Cursor Glow */
+.cursor-glow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle,
+            rgba(79, 142, 247, 0.28) 0%,
+            rgba(79, 142, 247, 0.18) 35%,
+            rgba(79, 142, 247, 0.08) 60%,
+            transparent 75%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    transform: translate(-50%, -50%);
+    will-change: transform;
 }
 
 /* Grid Overlay */
