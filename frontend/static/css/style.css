@@ -62,6 +62,21 @@ footer {
     will-change: transform;
 }
 
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-mark {
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.logo-mark svg {
+    display: block;
+}
+
 /* Grid Overlay */
 .grid-overlay {
     position: fixed;

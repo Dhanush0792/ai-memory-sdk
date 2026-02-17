@@ -88,8 +88,8 @@ class Database:
             # Force IPv4 if possible to avoid "Network is unreachable" (IPv6) errors
             host_ip = self._resolve_to_ipv4(self.conn_string)
             if host_ip:
-                return psycopg.connect(self.conn_string, hostaddr=host_ip)
-            return psycopg.connect(self.conn_string)
+                return psycopg.connect(self.conn_string, hostaddr=host_ip, prepare_threshold=None)
+            return psycopg.connect(self.conn_string, prepare_threshold=None)
         except psycopg.OperationalError as e:
             raise ConnectionError(f"Failed to connect to database: {e}") from e
     
