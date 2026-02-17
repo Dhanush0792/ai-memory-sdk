@@ -38,16 +38,17 @@
         <section class="hero">
             <div class="container">
                 <div class="hero-content">
+                    <div class="hero-signal">POST /api/v1/memory/extract</div>
                     <h1>Memory Infrastructure<br>for AI Systems</h1>
                     <p class="hero-subtext">
                         Persist user context across sessions.<br>
                         Extract structured memory from conversations.<br>
-                        Production-ready API for intelligent applications.
+                        Production-ready API for intelligent applications.<br>
+                        <span class="trust-indicator">Built for production AI systems handling real users.</span>
                     </p>
                     <div class="hero-actions">
-                        <a href="#docs" class="btn btn-primary">View API Docs</a>
-                        <a href="https://github.com/Dhanush0792/ai-memory-sdk" target="_blank"
-                            class="btn btn-secondary">GitHub</a>
+                        <a href="login.html" class="btn btn-primary">Request API Key</a>
+                        <a href="#how-it-works" class="btn btn-secondary">View Architecture</a>
                     </div>
                 </div>
                 <div class="hero-visual">
@@ -64,13 +65,62 @@
             </div>
         </section>
 
-        <!-- 2. HOW IT WORKS (Architecture) -->
+        <!-- 2. MEMORY DEMO (MOVED UP) -->
+        <section class="section animate-on-scroll">
+            <div class="container">
+                <h2 class="section-badge">Live Context</h2>
+                <h3 class="section-title">Memory That Persists Beyond the Prompt</h3>
+                <p class="section-subtext">Structured facts extracted, versioned, and retrievable across sessions.</p>
+
+                <div class="demo-wrapper">
+                    <div class="demo-grid">
+                        <!-- Left Card: User Input -->
+                        <div class="demo-card">
+                            <div class="card-label">User Input</div>
+                            <div class="card-content">
+                                <p>"I like to eat in Japanese restaurants."</p>
+                                <p class="typing-cursor">"I prefer concise answers."</p>
+                            </div>
+                        </div>
+
+                        <!-- Right Card: Persisted Memory -->
+                        <div class="demo-card" style="transition-delay: 150ms;">
+                            <div class="card-label">Persisted Memory</div>
+                            <div class="card-content">
+                                <pre class="json-block">{
+  "subject": "user",
+  "prefers_cuisine": "Japanese",
+  "prefers_response_style": "concise"
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Micro Strip -->
+                    <div class="micro-strip" style="transition-delay: 300ms;">
+                        <span class="strip-label">5 days later…</span>
+                        <div class="strip-dialog">
+                            <div class="dialog-line">
+                                <span class="speaker">User:</span>
+                                <span>"Where should I eat tonight?"</span>
+                            </div>
+                            <div class="dialog-line">
+                                <span class="speaker">AI:</span>
+                                <span>"Since you like Japanese restaurants, here are concise recommendations."</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. ARCHITECTURE (MOVED DOWN, SIMPLIFIED) -->
         <section id="how-it-works" class="section animate-on-scroll">
             <div class="container">
                 <h2 class="section-badge">Architecture</h2>
                 <h3 class="section-title">System Flow</h3>
 
-                <div class="architecture-diagram animate-on-scroll">
+                <div class="architecture-diagram">
                     <div class="arch-node">User Input</div>
                     <div class="arch-arrow">→</div>
                     <div class="arch-node">AI App</div>
@@ -81,42 +131,78 @@
                 </div>
 
                 <div class="arch-steps">
-                    <div class="step-card animate-on-scroll">
+                    <div class="step-card">
                         <span class="step-num">01</span>
                         <h4>Extraction</h4>
-                        <p>LLM-powered extraction logic identifies facts and preferences from unstructured text.</p>
+                        <p>Structured memory extracted from conversation.</p>
                     </div>
-                    <div class="step-card animate-on-scroll">
+                    <div class="step-card">
                         <span class="step-num">02</span>
-                        <h4>Persistence</h4>
-                        <p>Structured data is stored with vector embeddings and metadata in PostgreSQL.</p>
+                        <h4>Structuring</h4>
+                        <p>Subject–predicate–object formatting with version control.</p>
                     </div>
-                    <div class="step-card animate-on-scroll">
+                    <div class="step-card">
                         <span class="step-num">03</span>
-                        <h4>Retrieval</h4>
-                        <p>Semantic search + time-weighted retrieval fetches relevant context.</p>
+                        <h4>Persistence</h4>
+                        <p>Stored with deterministic indexing and conflict resolution.</p>
                     </div>
-                    <div class="step-card animate-on-scroll">
+                    <div class="step-card">
                         <span class="step-num">04</span>
-                        <h4>Injection</h4>
-                        <p>Context is injected into the prompt before the final LLM generation.</p>
+                        <h4>Retrieval</h4>
+                        <p>Context injected into future AI prompts.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 3. COMPARISON (Why AI Memory SDK) -->
-        <section id="features" class="section animate-on-scroll">
+        <!-- 4. PRODUCTION INFRASTRUCTURE -->
+        <section class="section animate-on-scroll">
+            <div class="container">
+                <h2 class="section-badge">Infrastructure</h2>
+                <h3 class="section-title">Built for Production AI Systems</h3>
+
+                <div class="infra-grid">
+                    <div class="feature-card">
+                        <h4>Deterministic Memory Engine</h4>
+                        <ul class="infra-list">
+                            <li>Version-controlled updates</li>
+                            <li>Conflict-safe writes</li>
+                            <li>Deterministic ranking</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card" style="transition-delay: 100ms;">
+                        <h4>Enterprise-Grade Infrastructure</h4>
+                        <ul class="infra-list">
+                            <li>Multi-tenant schema</li>
+                            <li>Redis-backed rate limiting</li>
+                            <li>Lock-safe transactions</li>
+                            <li>Audit logging</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card" style="transition-delay: 200ms;">
+                        <h4>Security by Default</h4>
+                        <ul class="infra-list">
+                            <li>Argon2id API key hashing</li>
+                            <li>JWT authentication</li>
+                            <li>Role-based access</li>
+                            <li>GDPR memory deletion</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. TREE COMPARISON -->
+        <section class="section animate-on-scroll">
             <div class="container">
                 <h2 class="section-badge">Why AI Memory SDK</h2>
                 <h3 class="section-title">Infrastructure vs. Ad-Hoc</h3>
 
                 <div class="features-tree">
                     <!-- LEFT SIDE: AI Memory SDK -->
-                    <div class="tree-col primary animate-on-scroll">
+                    <div class="tree-col primary">
                         <div class="tree-header">
                             <h4>AI Memory SDK</h4>
-                            <p>Production-Grade Infrastructure</p>
                         </div>
                         <ul class="tree-list">
                             <li class="tree-item">
@@ -137,10 +223,9 @@
                     </div>
 
                     <!-- RIGHT SIDE: Typical AI Apps -->
-                    <div class="tree-col animate-on-scroll">
+                    <div class="tree-col">
                         <div class="tree-header">
                             <h4>Typical AI Apps</h4>
-                            <p>Basic Implementation</p>
                         </div>
                         <ul class="tree-list">
                             <li class="tree-item">Stateless Chat</li>
@@ -155,187 +240,12 @@
             </div>
         </section>
 
-        <!-- 4. REAL USE CASES -->
-        <section class="section bg-deep">
-            <div class="container">
-                <h2 class="section-badge">Use Cases</h2>
-                <h3 class="section-title">Built for Intelligent Agents</h3>
-
-                <div class="use-cases-list">
-                    <div class="use-case-item">
-                        <div class="uc-content">
-                            <h4>Customer Support AI</h4>
-                            <p>Remember user issue history, plan tier, and sentiment across tickets to reduce resolution
-                                time.</p>
-                        </div>
-                    </div>
-                    <div class="use-case-item">
-                        <div class="uc-content">
-                            <h4>Personal AI Assistant</h4>
-                            <p>Build a truly personalized companion that remembers birthdays, preferences, and
-                                relationships.</p>
-                        </div>
-                    </div>
-                    <div class="use-case-item">
-                        <div class="uc-content">
-                            <h4>Educational Tutor</h4>
-                            <p>Track student progress, weak areas, and learning style to adapt curriculum dynamically.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="use-case-item">
-                        <div class="uc-content">
-                            <h4>Enterprise AI Tools</h4>
-                            <p>Context-aware internal tools that remember project details and employee roles.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 5. TECHNICAL DEPTH -->
+        <!-- 6. FINAL CTA -->
         <section class="section">
-            <div class="container">
-                <h2 class="section-badge">Technical Depth</h2>
-                <h3 class="section-title">Engineered by Systems Experts</h3>
-
-                <div class="tech-grid">
-                    <div class="tech-col">
-                        <h4 class="code-label">Project Structure</h4>
-                        <pre class="code-block file-tree">
-app/
- ├── routes/
- │   ├── v1/memory.py
- │   └── v1/auth.py
- ├── core/
- │   ├── extraction.py
- │   └── retrieval.py
- ├── database/
- │   └── session.py
- └── main.py</pre>
-                    </div>
-
-                    <div class="tech-col">
-                        <h4 class="code-label">API Request</h4>
-                        <pre class="code-block language-bash">
-curl -X POST https://api.memory.dev/v1/memory \
-  -H "Authorization: Bearer sk_live_..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "user_id": "u_8392",
-    "text": "User prefers dark mode."
-  }'</pre>
-                    </div>
-
-                    <div class="tech-col">
-                        <h4 class="code-label">Database Schema</h4>
-                        <pre class="code-block language-sql">
-CREATE TABLE memories (
-  id UUID PRIMARY KEY,
-  user_id VARCHAR(255) INDEX,
-  content TEXT NOT NULL,
-  embedding VECTOR(1536),
-  created_at TIMESTAMPTZ,
-  metadata JSONB DEFAULT '{}'
-);</pre>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 6. SECURITY & COMPLIANCE -->
-        <section class="section">
-            <div class="container">
-                <div class="security-panel">
-                    <div class="sec-content">
-                        <h2 class="section-badge">Security</h2>
-                        <h3 class="section-title">Enterprise-Grade Security</h3>
-                        <ul class="feature-list">
-                            <li>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                </svg>
-                                <span>Argon2id API key hashing</span>
-                            </li>
-                            <li>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                                </svg>
-                                <span>JWT-based authentication</span>
-                            </li>
-                            <li>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path
-                                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                                    <line x1="12" y1="22.08" x2="12" y2="12" />
-                                </svg>
-                                <span>Field-level encryption (optional)</span>
-                            </li>
-                            <li>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                    <polyline points="14 2 14 8 20 8" />
-                                    <line x1="16" y1="13" x2="8" y2="13" />
-                                    <line x1="16" y1="17" x2="8" y2="17" />
-                                    <polyline points="10 9 9 9 8 9" />
-                                </svg>
-                                <span>Audit logging</span>
-                            </li>
-                            <li>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                    <circle cx="8.5" cy="7" r="4" />
-                                    <line x1="18" y1="8" x2="23" y2="13" />
-                                    <line x1="23" y1="8" x2="18" y2="13" />
-                                </svg>
-                                <span>Immediate token invalidation</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 7. DEVELOPER EXPERIENCE -->
-        <section class="section bg-deep">
             <div class="container center-text">
-                <h2 class="section-badge">Get Started</h2>
-                <h3 class="section-title">Integrate in Minutes</h3>
-
-                <div class="quick-start">
-                    <div class="install-bar">
-                        <span class="prompt">$</span>
-                        <span class="command">pip install ai-memory-sdk</span>
-                        <button class="copy-btn" aria-label="Copy command">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="code-steps">
-                        <div class="step-line">
-                            <span class="line-num">1</span>
-                            <span class="code">from ai_memory import MemorySDK</span>
-                        </div>
-                        <div class="step-line">
-                            <span class="line-num">2</span>
-                            <span class="code">memory = MemorySDK(api_key="your_key")</span>
-                        </div>
-                        <div class="step-line">
-                            <span class="line-num">3</span>
-                            <span class="code">memory.add(user_id="user_1", text="Learned Python today")</span>
-                        </div>
-                    </div>
+                <h2 class="section-title">Ready to give your AI memory?</h2>
+                <div class="cta-wrapper">
+                    <a href="login.html" class="btn btn-primary">Request API Key</a>
                 </div>
             </div>
         </section>

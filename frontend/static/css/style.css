@@ -103,7 +103,7 @@ body {
 }
 
 .section {
-    padding: 6rem 0;
+    padding: 8rem 0;
     border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -255,7 +255,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 1rem;
+    gap: 1.5rem;
     margin-bottom: 4rem;
     flex-wrap: wrap;
 }
@@ -287,6 +287,7 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 2rem;
+    justify-content: center;
 }
 
 .step-card {
@@ -654,6 +655,169 @@ footer {
     }
 }
 
+/* Hero Updates */
+.hero-signal {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    margin-bottom: 2rem;
+}
+
+.trust-indicator {
+    display: block;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+/* Memory Demo Section */
+.section-subtext {
+    max-width: 600px;
+    margin: 0 auto 3rem auto;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.demo-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.demo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.demo-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 2rem;
+    height: 100%;
+}
+
+.card-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.card-content p {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.typing-cursor::after {
+    content: "|";
+    animation: cursor 1s infinite;
+}
+
+.json-block {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--accent-blue);
+    line-height: 1.5;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+/* Micro Strip */
+.micro-strip {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-subtle);
+    border-radius: 50px;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.strip-label {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.strip-dialog {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.dialog-line {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    color: var(--text-primary);
+}
+
+.speaker {
+    color: var(--text-secondary);
+    margin-right: 0.2rem;
+}
+
+/* Infrastructure Section */
+.infra-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.infra-list {
+    list-style: none;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.infra-list li {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    padding-left: 1rem;
+    position: relative;
+}
+
+.infra-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--border-subtle);
+}
+
+/* Final CTA */
+.cta-wrapper {
+    margin-top: 2rem;
+}
+
+/* Animations */
+@keyframes cursor {
+    50% {
+        border-color: transparent;
+        opacity: 0;
+    }
+}
+
+/* Tablet Responsive */
+@media (max-width: 1024px) {
+    .arch-steps {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 /* Mobile Responsive */
 @media (max-width: 900px) {
     .hero .container {
@@ -674,15 +838,29 @@ footer {
         justify-content: center;
     }
 
-    .arch-steps,
+    /* Stack Grids */
     .features-tree,
     .tech-grid,
-    .use-cases-list {
+    .use-cases-list,
+    .demo-grid,
+    .infra-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .arch-steps {
         grid-template-columns: 1fr;
     }
 
     .feature-list {
         columns: 1;
+    }
+
+    /* Micro Strip Mobile */
+    .micro-strip {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+        padding: 1.5rem;
     }
 
     .footer-content {
