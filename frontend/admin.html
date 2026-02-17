@@ -7,7 +7,8 @@
     <title>Admin Dashboard - AI Memory SDK</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="static/css/global.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="static/css/components.css">
     <link rel="stylesheet" href="static/css/animations.css">
     <style>
@@ -60,9 +61,18 @@
     <nav class="fixed w-full z-50 glass-panel border-b border-white/5 px-6 py-4">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div
-                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                    <span class="text-white font-bold">M</span>
+                <div class="flex items-center justify-center text-white">
+                    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                            <line x1="16" y1="6" x2="16" y2="16" />
+                            <line x1="6" y1="20" x2="26" y2="20" />
+                            <line x1="16" y1="16" x2="6" y2="20" />
+                            <line x1="16" y1="16" x2="26" y2="20" />
+                        </g>
+                        <circle cx="16" cy="6" r="3.2" fill="currentColor" />
+                        <circle cx="6" cy="20" r="3.2" fill="currentColor" />
+                        <circle cx="26" cy="20" r="3.2" fill="currentColor" />
+                    </svg>
                 </div>
                 <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
                     Admin Console

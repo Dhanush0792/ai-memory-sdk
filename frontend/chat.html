@@ -6,14 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Memory Chat - Real-Time Memory Integration</title>
     <meta name="description" content="AI chat with persistent memory - remembers you across sessions">
-    <link rel="stylesheet" href="static/css/chat.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
 
 <body>
     <!-- Header -->
     <header class="header">
         <div class="header-content">
-            <h1 class="logo">🧠 AI Memory Chat</h1>
+            <h1 class="logo" style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="28" height="28" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <line x1="16" y1="6" x2="16" y2="16" />
+                        <line x1="6" y1="20" x2="26" y2="20" />
+                        <line x1="16" y1="16" x2="6" y2="20" />
+                        <line x1="16" y1="16" x2="26" y2="20" />
+                    </g>
+                    <circle cx="16" cy="6" r="3.2" fill="currentColor" />
+                    <circle cx="6" cy="20" r="3.2" fill="currentColor" />
+                    <circle cx="26" cy="20" r="3.2" fill="currentColor" />
+                </svg>
+                AI Memory Chat
+            </h1>
             <div class="user-info">
                 <span class="user-id-label">User ID:</span>
                 <span class="user-id" id="userId">Loading...</span>

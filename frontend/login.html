@@ -15,6 +15,7 @@
         rel="stylesheet">
 
     <link rel="stylesheet" href="static/css/style.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <style>
         .login-section {
             min-height: 85vh;
@@ -39,7 +40,17 @@
         .login-header {
             text-align: center;
             margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
         }
+
+        .login-logo {
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
 
         .login-header h1 {
             font-size: 1.75rem;
@@ -167,6 +178,20 @@
         <section class="login-section">
             <div class="login-card">
                 <div class="login-header">
+                    <a href="index.html" class="login-logo">
+                        <svg width="48" height="48" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"
+                            class="logo-mark">
+                            <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                                <line x1="16" y1="6" x2="16" y2="16" />
+                                <line x1="6" y1="20" x2="26" y2="20" />
+                                <line x1="16" y1="16" x2="6" y2="20" />
+                                <line x1="16" y1="16" x2="26" y2="20" />
+                            </g>
+                            <circle cx="16" cy="6" r="3.2" fill="currentColor" />
+                            <circle cx="6" cy="20" r="3.2" fill="currentColor" />
+                            <circle cx="26" cy="20" r="3.2" fill="currentColor" />
+                        </svg>
+                    </a>
                     <h1>Welcome Back</h1>
                     <p>Enter your credentials to access the dashboard.</p>
                 </div>
