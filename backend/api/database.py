@@ -272,6 +272,23 @@ class Database:
                         print("✅ Migration completed successfully!")
                     else:
                         print("✅ Database schema is up to date")
+
+                # Check api_keys table for migrations
+                cur.execute("""
+                    SELECT table_name 
+                    FROM information_schema.tables 
+                    WHERE table_name='api_keys' AND table_schema='public'
+                """)
+                if cur.fetchone():
+                    cur.execute("""
+                        SELECT column_name 
+                        FROM information_schema.columns 
+                        WHERE table_name='api_keys' AND table_schema='public'
+                    """)
+                    ak_cols = {row[0] for row in cur.fetchall()}
+                    if 'owner_id' not in ak_cols:
+                         print("  → Adding owner_id to api_keys")
+                         cur.execute("ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS owner_id TEXT")
                 
                 # Now create/update tables with full schema
                 cur.execute("""
