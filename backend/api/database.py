@@ -132,6 +132,19 @@ class Database:
                     if 'ingestion_mode' not in existing_columns:
                         migrations_needed.append('ingestion_mode')
                     
+                    if 'memory_type' not in existing_columns:
+                        migrations_needed.append('memory_type')
+                    if 'key' not in existing_columns:
+                        migrations_needed.append('key')
+                    if 'value' not in existing_columns:
+                        migrations_needed.append('value')
+                    if 'confidence' not in existing_columns:
+                        migrations_needed.append('confidence')
+                    if 'importance' not in existing_columns:
+                        migrations_needed.append('importance')
+                    if 'metadata' not in existing_columns:
+                        migrations_needed.append('metadata')
+                    
                     if migrations_needed:
                         print(f"📝 Migrating columns: {', '.join(migrations_needed)}")
                         
@@ -155,6 +168,52 @@ class Database:
                                 CREATE INDEX IF NOT EXISTS idx_owner_id ON memories(owner_id)
                             """)
                         
+                        # Add memory_type column (CRITICAL FIX)
+                        if 'memory_type' in migrations_needed:
+                            print("  → Adding memory_type column...")
+                            cur.execute("""
+                                ALTER TABLE memories 
+                                ADD COLUMN IF NOT EXISTS memory_type TEXT DEFAULT 'system'
+                            """)
+                            cur.execute("""
+                                ALTER TABLE memories 
+                                ADD CONSTRAINT check_memory_type 
+                                CHECK (memory_type IN ('fact', 'preference', 'event', 'system'))
+                            """)
+                            cur.execute("""
+                                UPDATE memories 
+                                SET memory_type = 'system' 
+                                WHERE memory_type IS NULL
+                            """)
+                            cur.execute("""
+                                ALTER TABLE memories 
+                                ALTER COLUMN memory_type SET NOT NULL
+                            """)
+                            cur.execute("""
+                                CREATE INDEX IF NOT EXISTS idx_type ON memories(memory_type)
+                            """)
+
+                        # Add key/value/metadata/confidence/importance
+                        if 'key' in migrations_needed:
+                             print("  → Adding key column...")
+                             cur.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS key TEXT")
+                        
+                        if 'value' in migrations_needed:
+                             print("  → Adding value column...")
+                             cur.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS value JSONB")
+
+                        if 'metadata' in migrations_needed:
+                             print("  → Adding metadata column...")
+                             cur.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'")
+
+                        if 'confidence' in migrations_needed:
+                             print("  → Adding confidence column...")
+                             cur.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS confidence REAL DEFAULT 1.0")
+
+                        if 'importance' in migrations_needed:
+                             print("  → Adding importance column...")
+                             cur.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS importance INTEGER")
+
                         # Add is_deleted column
                         if 'is_deleted' in migrations_needed:
                             print("  → Adding is_deleted column...")
