@@ -21,6 +21,13 @@ app = FastAPI(
 cors_origins = os.getenv("CORS_ORIGINS", "")
 origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
 
+# Add critical infrastructure domains
+origins.extend([
+    "https://ai-memorysdk.netlify.app",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500"
+])
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

@@ -252,18 +252,26 @@
 
                 // Success
                 localStorage.setItem('access_token', data.access_token);
-                /* 
-                   Note: The backend response currently only returns the token.
-                   If you need user info, you might need to fetch /api/v1/users/me next 
-                   or decode the token.
-                */
+
+                // Fetch user role to determine redirect
+                const userResponse = await fetch(`${API_URL}/users/me`, {
+                    headers: { 'Authorization': `Bearer ${data.access_token}` }
+                });
+
+                let redirectUrl = 'index.html';
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    if (userData.role === 'admin') {
+                        redirectUrl = 'admin.html';
+                    }
+                }
 
                 alertBox.textContent = 'Login successful! Redirecting...';
                 alertBox.classList.add('alert-success');
                 alertBox.style.display = 'block';
 
                 setTimeout(() => {
-                    window.location.href = 'index.html'; // Or dashboard if you have one
+                    window.location.href = redirectUrl;
                 }, 1000);
 
             } catch (error) {
