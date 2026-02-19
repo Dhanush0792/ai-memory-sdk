@@ -276,19 +276,12 @@
                 }
 
                 // Success
-                localStorage.setItem('access_token', data.access_token);
+                localStorage.setItem('token', data.access_token);
+                localStorage.setItem('role', data.role || 'user');
 
-                // Fetch user role to determine redirect
-                const userResponse = await fetch(`${API_URL}/users/me`, {
-                    headers: { 'Authorization': `Bearer ${data.access_token}` }
-                });
-
-                let redirectUrl = 'index.html';
-                if (userResponse.ok) {
-                    const userData = await userResponse.json();
-                    if (userData.role === 'admin') {
-                        redirectUrl = 'admin.html';
-                    }
+                let redirectUrl = 'dashboard.html';
+                if (data.role === 'admin') {
+                    redirectUrl = 'admin.html';
                 }
 
                 alertBox.textContent = 'Login successful! Redirecting...';

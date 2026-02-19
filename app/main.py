@@ -111,7 +111,9 @@ app = FastAPI(
     title="Memory Infrastructure Phase 2",
     description="Enterprise-grade cognitive state infrastructure with RBAC, policies, and observability",
     version="2.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc"
 )
 
 # ============================================================================

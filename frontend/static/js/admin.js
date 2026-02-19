@@ -2,10 +2,11 @@ const API_BASE_URL = window.location.origin;
 
 // Auth Check
 document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (!token || role !== "admin") {
+        window.location.href = "/login.html";
     }
 
     // Decode token payload to check role (simple client-side check)
@@ -29,13 +30,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Logout
 document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
     window.location.href = 'login.html';
 });
 
 // API Helper
 async function fetchAdmin(endpoint, options = {}) {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('token');
     const headers = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',

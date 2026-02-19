@@ -67,13 +67,12 @@ def list_users(
     skip: int = 0, 
     limit: int = 50, 
     admin: dict = Depends(require_admin),
-    request: Request = None # Inject request for rate limiting (though not strictly applied to GET list in prompt, good practice to have access if needed, applying constraint generically via dependency in other routes or manually calling)
+    request: Request = None 
 ):
     """List all users (Admin only)."""
-    # Note: Prompt specifically asked for rate limit on "Admin Endpoints", implying all. 
-    # But primarily critical for mutations. I'll add the check to all via a dependency if possible, 
-    # or just call the checker function at start of each.
-    if request: check_admin_rate_limit(request)
+    # Enforce rate limit
+    if request:
+        check_admin_rate_limit(request)
     
     with db.get_cursor() as cur:
         cur.execute("""
@@ -155,8 +154,13 @@ def disable_user(
     return {"status": "success", "message": f"User {user_id} disabled"}
 
 @router.get("/stats", response_model=StatsResponse)
-def get_system_stats(admin: dict = Depends(require_admin)):
+def get_system_stats(
+    request: Request,
+    admin: dict = Depends(require_admin)
+):
     """Get system-wide statistics (Admin only)."""
+    check_admin_rate_limit(request)
+    
     with db.get_cursor() as cur:
         # User stats
         cur.execute("SELECT COUNT(*) as total FROM users")

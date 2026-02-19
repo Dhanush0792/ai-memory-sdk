@@ -23,6 +23,7 @@ from app.extraction.factory import get_extraction_provider
 from app.chat.providers.factory import get_chat_provider
 from app.auth.dependencies import get_current_user
 from fastapi import Depends
+from app.middleware.rate_limiter import rate_limit_middleware
 
 
 router = APIRouter(prefix="/api/v1", tags=["chat"])
@@ -61,7 +62,8 @@ class Memory(BaseModel):
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(
-    request: ChatRequest,
+    request: Request,
+    chat_request: ChatRequest,
     current_user_id: str = Depends(get_current_user),
     x_tenant_id: Optional[str] = Header(None),
 ):
@@ -78,16 +80,20 @@ async def chat(
     start_time = time.time()
     
     # Extract user identity (priority: JWT > request body > generate)
-    user_id = current_user_id or request.user_id or f"user-{uuid.uuid4()}"
-    tenant_id = x_tenant_id or request.tenant_id or "default-tenant"
-    session_id = request.session_id or f"session-{uuid.uuid4()}"
+    user_id = current_user_id or chat_request.user_id or f"user-{uuid.uuid4()}"
+
+    # V1.1: Rate limiting
+    await rate_limit_middleware(request, user_id)
+    
+    tenant_id = x_tenant_id or chat_request.tenant_id or "default-tenant"
+    session_id = chat_request.session_id or f"session-{uuid.uuid4()}"
     
     logger.info(
         "chat_request_received",
         user_id=user_id,
         tenant_id=tenant_id,
         session_id=session_id,
-        message_length=len(request.message)
+        message_length=len(chat_request.message)
     )
     
     try:
@@ -95,7 +101,7 @@ async def chat(
         logger.debug("chat_step_1_ingest", user_id=user_id)
         
         extraction_provider = get_extraction_provider()
-        extracted_triples = extraction_provider.extract(request.message)
+        extracted_triples = extraction_provider.extract(chat_request.message)
         
         memories_ingested = 0
         for triple in extracted_triples:
@@ -146,7 +152,7 @@ async def chat(
         
         chat_provider = get_chat_provider()
         llm_response = await chat_provider.generate_chat(
-            message=request.message,
+            message=chat_request.message,
             context=context
         )
         

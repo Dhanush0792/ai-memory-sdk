@@ -102,12 +102,31 @@ class Settings(BaseSettings):
         case_sensitive = False
     
     @validator("database_url")
-    def validate_database_url(cls, v):
-        """Ensure DATABASE_URL is valid PostgreSQL connection string."""
+    def validate_database_url(cls, v, values):
+        """
+        Ensure DATABASE_URL is valid PostgreSQL connection string.
+        Phase 4: Enforce SSL in production.
+        """
         if not v or not v.startswith("postgresql"):
             raise ValueError("DATABASE_URL must be a valid PostgreSQL connection string")
+        
+        # Enforce SSL for production
+        env = values.get("environment", "production")
+        if env == "production" and "sslmode=require" not in v and "sslmode=verify" not in v:
+             # Log warning or raise error. Prompt says "Log warning or raise startup error".
+             # We will raise error for "infrastructure-grade production correct".
+             raise ValueError("Production DATABASE_URL must contain 'sslmode=require'")
+             
         return v
     
+    @validator("jwt_secret", "api_key")
+    def validate_critical_secrets(cls, v, field):
+        """Phase 6: Ensure critical secrets are strong."""
+        min_len = 32 if field.name == "jwt_secret" else 16
+        if not v or len(v) < min_len:
+             raise ValueError(f"{field.name} must be at least {min_len} characters")
+        return v
+
     @validator("extraction_provider")
     def validate_extraction_provider(cls, v):
         """Ensure extraction provider is supported."""
