@@ -68,7 +68,7 @@ class VersionHistoryResponse(BaseModel):
 @router.get("/memories", response_model=MemoryListResponse)
 async def list_memories(
     x_tenant_id: str = Header(...),
-    user_id: str = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     scope: Optional[str] = None,
     limit: int = 100,
     offset: int = 0
@@ -81,6 +81,7 @@ async def list_memories(
         limit: Maximum number of memories to return
         offset: Pagination offset
     """
+    user_id = current_user["id"]
     logger.info(
         "list_memories_request",
         user_id=user_id,
@@ -163,7 +164,7 @@ async def list_memories(
     except Exception as e:
         logger.error(
             "list_memories_failed",
-            user_id=x_user_id,
+            user_id=user_id,
             error=str(e)
         )
         raise HTTPException(status_code=500, detail=str(e))
@@ -173,13 +174,14 @@ async def list_memories(
 async def delete_memory(
     memory_id: str,
     x_tenant_id: str = Header(...),
-    user_id: str = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Soft delete a memory (mark as inactive).
     
     Creates audit log entry.
     """
+    user_id = current_user["id"]
     logger.info(
         "delete_memory_request",
         user_id=user_id,
@@ -265,13 +267,14 @@ async def get_version_history(
     subject: str,
     predicate: str,
     x_tenant_id: str = Header(...),
-    user_id: str = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Get version history for a specific subject+predicate.
     
     Shows all versions (active and inactive).
     """
+    user_id = current_user["id"]
     logger.info(
         "version_history_request",
         user_id=user_id,

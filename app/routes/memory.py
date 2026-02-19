@@ -3,7 +3,7 @@ Memory API routes with V1.1 hardening.
 All endpoints require authentication and include audit logging + rate limiting.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from uuid import UUID
 from typing import List
 
@@ -15,10 +15,9 @@ from app.models import (
     MemoryDeleteResponse,
     MemoryObject,
 )
-# from app.middleware.auth import verify_api_key  # Deprecated in V2
 from app.auth.dependencies import get_current_user
 from app.middleware.rate_limiter import rate_limit_middleware
-from app.memory.extractor import extract_memories, ExtractionError
+from app.extraction.factory import get_extraction_provider, ExtractionError
 from app.memory.storage import (
     store_memories_batch,
     delete_memory,
@@ -28,6 +27,8 @@ from app.memory.storage import (
 from app.memory.retrieval import retrieve_memories, RetrievalError
 from app.audit import log_action
 
+# JWT auth constant for audit logging (replaces legacy api_key)
+AUTH_METHOD = "jwt_auth"
 
 router = APIRouter(prefix="/memory", tags=["memory"])
 
@@ -35,7 +36,7 @@ router = APIRouter(prefix="/memory", tags=["memory"])
 @router.post("/ingest", response_model=MemoryIngestResponse)
 async def ingest_memory(
     request: MemoryIngestRequest,
-    user_id: str = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Ingest conversation text and extract structured memories.
@@ -54,21 +55,24 @@ async def ingest_memory(
     5. Log action to audit trail
     6. Return stored memories
     
-    Requires: X-API-Key header
+    Requires: Bearer JWT token
     """
+    user_id = current_user["id"]
+    
     # V1.1: Rate limiting
     await rate_limit_middleware(None, user_id)
     
     try:
-        # Extract memories from conversation
-        triples = extract_memories(request.conversation_text)
+        # Extract memories from conversation using configured provider
+        provider = get_extraction_provider()
+        triples = provider.extract(request.conversation_text)
         
         if not triples:
             # V1.1: Audit log failure
             log_action(
                 tenant_id=request.tenant_id,
                 action_type="INGEST",
-                api_key="jwt_auth",  # Placeholder for legacy field
+                api_key=AUTH_METHOD,
                 success=False,
                 user_id=user_id,
                 metadata={"reason": "no_triples_extracted"},
@@ -94,7 +98,7 @@ async def ingest_memory(
             log_action(
                 tenant_id=request.tenant_id,
                 action_type="INGEST",
-                api_key=api_key,
+                api_key=AUTH_METHOD,
                 success=True,
                 user_id=request.user_id,
                 memory_id=memory.id,
@@ -116,9 +120,9 @@ async def ingest_memory(
         log_action(
             tenant_id=request.tenant_id,
             action_type="INGEST",
-            api_key=api_key,
+            api_key=AUTH_METHOD,
             success=False,
-            user_id=request.user_id,
+            user_id=user_id,
             metadata={"error_type": "extraction_error"},
             error_message=str(e)
         )
@@ -132,9 +136,9 @@ async def ingest_memory(
         log_action(
             tenant_id=request.tenant_id,
             action_type="INGEST",
-            api_key=api_key,
+            api_key=AUTH_METHOD,
             success=False,
-            user_id=request.user_id,
+            user_id=user_id,
             metadata={"error_type": "storage_error"},
             error_message=str(e)
         )
@@ -148,9 +152,9 @@ async def ingest_memory(
         log_action(
             tenant_id=request.tenant_id,
             action_type="INGEST",
-            api_key=api_key,
+            api_key=AUTH_METHOD,
             success=False,
-            user_id=request.user_id,
+            user_id=user_id,
             metadata={"error_type": "unexpected_error"},
             error_message=str(e)
         )
@@ -165,8 +169,9 @@ async def ingest_memory(
 async def retrieve_memory(
     tenant_id: str,
     query: str,
+    user_id: str = None,
     limit: int = 10,
-    user_id: str = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Retrieve memories with deterministic relevance ranking.
@@ -184,13 +189,17 @@ async def retrieve_memory(
     Ranks by:
     - Exact match (+10)
     - Partial match (+5 per token)
-    - Confidence (×5.0)
+    - Confidence (x5.0)
     - Recency (decay 0.1/day)
     
-    Requires: X-API-Key header
+    Requires: Bearer JWT token
     """
+    auth_user_id = current_user["id"]
+    # Use provided user_id from query param, or fall back to authenticated user
+    effective_user_id = user_id or auth_user_id
+    
     # V1.1: Rate limiting
-    await rate_limit_middleware(None, api_key)
+    await rate_limit_middleware(None, auth_user_id)
     
     try:
         # Validate limit
@@ -203,7 +212,7 @@ async def retrieve_memory(
         # Retrieve memories
         memories = retrieve_memories(
             tenant_id=tenant_id,
-            user_id=user_id,
+            user_id=effective_user_id,
             query=query,
             limit=limit
         )
@@ -212,9 +221,9 @@ async def retrieve_memory(
         log_action(
             tenant_id=tenant_id,
             action_type="RETRIEVE",
-            api_key=api_key,
+            api_key=AUTH_METHOD,
             success=True,
-            user_id=user_id,
+            user_id=effective_user_id,
             metadata={
                 "query": query,
                 "limit": limit,
@@ -232,9 +241,9 @@ async def retrieve_memory(
         log_action(
             tenant_id=tenant_id,
             action_type="RETRIEVE",
-            api_key=api_key,
+            api_key=AUTH_METHOD,
             success=False,
-            user_id=user_id,
+            user_id=effective_user_id,
             metadata={"query": query},
             error_message=str(e)
         )
@@ -248,9 +257,9 @@ async def retrieve_memory(
         log_action(
             tenant_id=tenant_id,
             action_type="RETRIEVE",
-            api_key=api_key,
+            api_key=AUTH_METHOD,
             success=False,
-            user_id=user_id,
+            user_id=effective_user_id,
             metadata={"query": query},
             error_message=str(e)
         )
@@ -264,7 +273,7 @@ async def retrieve_memory(
 @router.delete("/{memory_id}", response_model=MemoryDeleteResponse)
 async def delete_memory_endpoint(
     memory_id: UUID,
-    user_id: str = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Soft delete a memory (set is_active=false).
@@ -275,10 +284,12 @@ async def delete_memory_endpoint(
     
     Preserves version history.
     
-    Requires: X-API-Key header
+    Requires: Bearer JWT token
     """
+    user_id = current_user["id"]
+    
     # V1.1: Rate limiting
-    await rate_limit_middleware(None, api_key)
+    await rate_limit_middleware(None, user_id)
     
     try:
         # Check if memory exists
@@ -289,7 +300,7 @@ async def delete_memory_endpoint(
             log_action(
                 tenant_id="unknown",
                 action_type="DELETE",
-                api_key=api_key,
+                api_key=AUTH_METHOD,
                 success=False,
                 memory_id=memory_id,
                 metadata={"reason": "not_found"},
@@ -309,7 +320,7 @@ async def delete_memory_endpoint(
             log_action(
                 tenant_id=memory.tenant_id,
                 action_type="DELETE",
-                api_key=api_key,
+                api_key=AUTH_METHOD,
                 success=True,
                 user_id=memory.user_id,
                 memory_id=memory_id,
@@ -329,7 +340,7 @@ async def delete_memory_endpoint(
             log_action(
                 tenant_id=memory.tenant_id,
                 action_type="DELETE",
-                api_key=api_key,
+                api_key=AUTH_METHOD,
                 success=False,
                 user_id=memory.user_id,
                 memory_id=memory_id,
@@ -348,7 +359,7 @@ async def delete_memory_endpoint(
         log_action(
             tenant_id="unknown",
             action_type="DELETE",
-            api_key=api_key,
+            api_key=AUTH_METHOD,
             success=False,
             memory_id=memory_id,
             error_message=str(e)
@@ -363,7 +374,7 @@ async def delete_memory_endpoint(
         log_action(
             tenant_id="unknown",
             action_type="DELETE",
-            api_key=api_key,
+            api_key=AUTH_METHOD,
             success=False,
             memory_id=memory_id,
             error_message=str(e)

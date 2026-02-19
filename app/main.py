@@ -65,6 +65,44 @@ async def lifespan(app: FastAPI):
                     with open("database/migrations/001_create_users.sql", "r") as f:
                         cur.execute(f.read())
                     logger.info("migrations_applied")
+                
+                # Ensure audit_logs table exists
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS audit_logs (
+                        id SERIAL PRIMARY KEY,
+                        tenant_id VARCHAR(255),
+                        user_id VARCHAR(255),
+                        action_type VARCHAR(50) NOT NULL,
+                        memory_id UUID,
+                        api_key_hash VARCHAR(64),
+                        metadata JSONB,
+                        success BOOLEAN DEFAULT true,
+                        error_message TEXT,
+                        timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                cur.connection.commit()
+                
+                # Ensure memories table exists
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS memories (
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        tenant_id VARCHAR(255) NOT NULL,
+                        user_id VARCHAR(255) NOT NULL,
+                        subject VARCHAR(500) NOT NULL,
+                        predicate VARCHAR(255) NOT NULL,
+                        object TEXT NOT NULL,
+                        confidence FLOAT DEFAULT 0.8,
+                        source VARCHAR(100) DEFAULT 'conversation',
+                        scope VARCHAR(50) DEFAULT 'user',
+                        version INTEGER DEFAULT 1,
+                        is_active BOOLEAN DEFAULT true,
+                        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                cur.connection.commit()
+                
             except Exception as e:
                 logger.warning("migration_check_failed", error=str(e))
                 # Don't fail startup on migration check error, DB might be fine

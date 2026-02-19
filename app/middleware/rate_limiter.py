@@ -87,13 +87,13 @@ rate_limiter = InMemoryRateLimiter(
 )
 
 
-async def rate_limit_middleware(request: Request, api_key: str) -> None:
+async def rate_limit_middleware(request, api_key: str) -> None:
     """
     Check rate limit for the given API key.
     
     Args:
-        request: FastAPI request object
-        api_key: API key from authentication
+        request: FastAPI request object (can be None if called directly)
+        api_key: API key or user ID from authentication
         
     Raises:
         HTTPException: 429 if rate limit exceeded
@@ -108,4 +108,5 @@ async def rate_limit_middleware(request: Request, api_key: str) -> None:
         )
     
     # Add rate limit headers to response (will be added by route)
-    request.state.rate_limit_remaining = remaining
+    if request is not None and hasattr(request, 'state'):
+        request.state.rate_limit_remaining = remaining
