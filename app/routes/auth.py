@@ -38,10 +38,43 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class UserSignup(UserLogin):
+    full_name: str | None = None
+
 class Token(BaseModel):
     access_token: str
     token_type: str
     role: str
+
+@router.post("/auth/signup", status_code=status.HTTP_200_OK)
+def signup(user: UserSignup):
+    """Register a new user."""
+    # Check if user exists
+    with db.get_cursor() as cur:
+        cur.execute("SELECT id FROM users WHERE email = %s", (user.email,))
+        if cur.fetchone():
+            logger.warning("auth_signup_duplicate", email=user.email)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+        
+        # Hash password
+        hashed_password = get_password_hash(user.password)
+        
+        # Insert user
+        cur.execute(
+            """
+            INSERT INTO users (email, password_hash, full_name, role)
+            VALUES (%s, %s, %s, 'user')
+            RETURNING id
+            """,
+            (user.email, hashed_password, user.full_name)
+        )
+        user_id = cur.fetchone()["id"]
+        
+    logger.info("auth_signup_success", email=user.email, user_id=str(user_id))
+    return {"message": "User created successfully"}
 
 @router.post("/auth/login", response_model=Token)
 def login(user: UserLogin, request: Request):
@@ -85,12 +118,15 @@ def login(user: UserLogin, request: Request):
             detail="Account is disabled. Please contact admin.",
         )
 
-    # Update last_login_at
-    with db.get_cursor() as cur:
-        cur.execute(
-            "UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = %s",
-            (db_user["id"],)
-        )
+    # Update last sign in timestamp
+    try:
+        with db.get_cursor() as cur:
+            cur.execute(
+                "UPDATE users SET last_sign_in_at = CURRENT_TIMESTAMP WHERE id = %s",
+                (db_user["id"],)
+            )
+    except Exception:
+        pass  # Non-critical; don't fail login if timestamp update fails
     
     # Generate token with role
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)

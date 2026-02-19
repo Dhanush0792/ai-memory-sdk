@@ -184,7 +184,7 @@ async def health():
     
     return HealthResponse(
         status="healthy" if db_healthy else "unhealthy",
-        database="connected" if db_healthy else "disconnected",
+        database_connected=db_healthy,
         version="2.0.0"
     )
 

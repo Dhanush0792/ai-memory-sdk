@@ -13,7 +13,41 @@ print("SECURITY HARDENING VERIFICATION")
 print("=" * 70)
 
 BASE_URL = "http://localhost:8000"
-API_KEY = "dev-key-12345"
+
+def get_auth_token(email="security@example.com", password="password123"):
+    """Get JWT token via login or signup."""
+    # Try login
+    response = requests.post(
+        f"{BASE_URL}/api/v1/auth/login",
+        json={"email": email, "password": password}
+    )
+    if response.status_code == 200:
+        return response.json()["access_token"]
+    
+    # Try signup
+    response = requests.post(
+        f"{BASE_URL}/api/v1/auth/signup",
+        json={"email": email, "password": password, "full_name": "Security Test User"}
+    )
+    if response.status_code == 200:
+        # Login again
+        response = requests.post(
+            f"{BASE_URL}/api/v1/auth/login",
+            json={"email": email, "password": password}
+        )
+        return response.json()["access_token"]
+    
+    # If fails, maybe already signed up but login failed? 
+    # Or maybe it's cleaner to just print warning
+    print(f"Warning: Auth failed: {response.text}")
+    return "dev-key-12345"
+
+try:
+    API_KEY = get_auth_token()
+    print(f"\n🔐 Authenticated with token: {API_KEY[:10]}...")
+except Exception as e:
+    print(f"\n⚠ Auth setup failed: {e}")
+    API_KEY = "dev-key-12345"
 
 # Test 1: HTTPS Enforcement
 print("\n[1/8] Testing HTTPS Enforcement")

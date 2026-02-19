@@ -11,9 +11,41 @@ from typing import List, Dict
 
 # Configuration
 BASE_URL = "http://localhost:8000"
-API_KEY = "test-api-key-12345678"
+
+def get_auth_token(email="test@example.com", password="password123"):
+    """Get JWT token via login or signup."""
+    # Try login
+    response = requests.post(
+        f"{BASE_URL}/api/v1/auth/login",
+        json={"email": email, "password": password}
+    )
+    if response.status_code == 200:
+        return response.json()["access_token"]
+    
+    # Try signup
+    response = requests.post(
+        f"{BASE_URL}/api/v1/auth/signup",
+        json={"email": email, "password": password, "full_name": "Test User"}
+    )
+    if response.status_code == 200:
+        # Login again
+        response = requests.post(
+            f"{BASE_URL}/api/v1/auth/login",
+            json={"email": email, "password": password}
+        )
+        return response.json()["access_token"]
+    
+    raise Exception(f"Auth failed: {response.text}")
+
+try:
+    API_KEY = get_auth_token()
+    print(f"Logged in with token: {API_KEY[:10]}...")
+except Exception as e:
+    print(f"WARNING: Auth failed during setup ({e}). Tests may fail.")
+    API_KEY = "dummy-token"
+
 HEADERS = {
-    "X-API-Key": API_KEY,
+    "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"
 }
 
@@ -38,7 +70,7 @@ def test_extraction_validation():
     
     # Test 1: Valid extraction
     response = requests.post(
-        f"{BASE_URL}/memory/ingest",
+        f"{BASE_URL}/api/v1/memory/ingest",
         headers=HEADERS,
         json={
             "tenant_id": "test-tenant",
@@ -50,7 +82,7 @@ def test_extraction_validation():
     
     # Test 2: Empty conversation (should fail gracefully)
     response = requests.post(
-        f"{BASE_URL}/memory/ingest",
+        f"{BASE_URL}/api/v1/memory/ingest",
         headers=HEADERS,
         json={
             "tenant_id": "test-tenant",
@@ -72,7 +104,7 @@ def test_extraction_validation():
 def update_manager_concurrent(user_id: str, manager_name: str, attempt: int) -> Dict:
     """Helper function to update manager concurrently."""
     response = requests.post(
-        f"{BASE_URL}/memory/ingest",
+        f"{BASE_URL}/api/v1/memory/ingest",
         headers=HEADERS,
         json={
             "tenant_id": "concurrency-test",
@@ -110,7 +142,7 @@ def test_concurrency_control():
     # Verify only ONE active version exists
     time.sleep(1)  # Wait for all transactions to complete
     response = requests.get(
-        f"{BASE_URL}/memory/retrieve",
+        f"{BASE_URL}/api/v1/memory/retrieve",
         headers=HEADERS,
         params={
             "tenant_id": "concurrency-test",
@@ -144,7 +176,7 @@ def test_audit_logging():
     
     # Test 1: Ingest operation
     response = requests.post(
-        f"{BASE_URL}/memory/ingest",
+        f"{BASE_URL}/api/v1/memory/ingest",
         headers=HEADERS,
         json={
             "tenant_id": tenant_id,
@@ -156,7 +188,7 @@ def test_audit_logging():
     
     # Test 2: Retrieve operation
     response = requests.get(
-        f"{BASE_URL}/memory/retrieve",
+        f"{BASE_URL}/api/v1/memory/retrieve",
         headers=HEADERS,
         params={
             "tenant_id": tenant_id,
@@ -172,7 +204,7 @@ def test_audit_logging():
         if memories:
             memory_id = memories[0]["id"]
             response = requests.delete(
-                f"{BASE_URL}/memory/{memory_id}",
+                f"{BASE_URL}/api/v1/memory/{memory_id}",
                 headers=HEADERS
             )
             print_result(response.status_code == 200, "Delete operation logged")
@@ -202,7 +234,7 @@ def test_deterministic_ranking():
     
     for text in memories_text:
         requests.post(
-            f"{BASE_URL}/memory/ingest",
+            f"{BASE_URL}/api/v1/memory/ingest",
             headers=HEADERS,
             json={
                 "tenant_id": tenant_id,
@@ -217,7 +249,7 @@ def test_deterministic_ranking():
     results = []
     for i in range(5):
         response = requests.get(
-            f"{BASE_URL}/memory/retrieve",
+            f"{BASE_URL}/api/v1/memory/retrieve",
             headers=HEADERS,
             params={
                 "tenant_id": tenant_id,
@@ -256,7 +288,7 @@ def test_security_controls():
     # Test 2: Request size limit
     large_text = "x" * 2_000_000  # 2MB
     response = requests.post(
-        f"{BASE_URL}/memory/ingest",
+        f"{BASE_URL}/api/v1/memory/ingest",
         headers=HEADERS,
         json={
             "tenant_id": "security-test",
@@ -274,7 +306,7 @@ def test_security_controls():
     rate_limit_hit = False
     for i in range(110):
         response = requests.get(
-            f"{BASE_URL}/memory/retrieve",
+            f"{BASE_URL}/api/v1/memory/retrieve",
             headers=HEADERS,
             params={
                 "tenant_id": "rate-test",
@@ -292,7 +324,7 @@ def test_security_controls():
     
     # Test 4: API key authentication
     response = requests.get(
-        f"{BASE_URL}/memory/retrieve",
+        f"{BASE_URL}/api/v1/memory/retrieve",
         headers={"Content-Type": "application/json"},  # No API key
         params={
             "tenant_id": "auth-test",
@@ -323,7 +355,7 @@ def test_transaction_safety():
     
     # Insert initial memory
     response = requests.post(
-        f"{BASE_URL}/memory/ingest",
+        f"{BASE_URL}/api/v1/memory/ingest",
         headers=HEADERS,
         json={
             "tenant_id": tenant_id,
@@ -335,7 +367,7 @@ def test_transaction_safety():
     
     # Update memory (should create version 2)
     response = requests.post(
-        f"{BASE_URL}/memory/ingest",
+        f"{BASE_URL}/api/v1/memory/ingest",
         headers=HEADERS,
         json={
             "tenant_id": tenant_id,
@@ -347,7 +379,7 @@ def test_transaction_safety():
     
     # Verify version 2 exists and version 1 is inactive
     response = requests.get(
-        f"{BASE_URL}/memory/retrieve",
+        f"{BASE_URL}/api/v1/memory/retrieve",
         headers=HEADERS,
         params={
             "tenant_id": tenant_id,

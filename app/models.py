@@ -2,7 +2,7 @@
 Pydantic models for request/response validation.
 """
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from datetime import datetime
 from uuid import UUID
@@ -16,7 +16,8 @@ class MemoryIngestRequest(BaseModel):
     user_id: str = Field(..., min_length=1, max_length=255, description="User identifier")
     conversation_text: str = Field(..., min_length=1, description="Conversation text to extract memories from")
     
-    @validator("conversation_text")
+    @field_validator("conversation_text")
+    @classmethod
     def validate_conversation_text(cls, v):
         """Ensure conversation text is not just whitespace."""
         if not v.strip():
@@ -49,8 +50,7 @@ class MemoryObject(BaseModel):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class MemoryObjectWithScore(MemoryObject):
@@ -83,6 +83,7 @@ class HealthResponse(BaseModel):
     """Response model for health check."""
     status: str = Field(..., description="healthy or unhealthy")
     database_connected: bool
+    version: str = Field(..., description="API version")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -95,7 +96,8 @@ class ExtractedTriple(BaseModel):
     object: str = Field(..., min_length=1)
     confidence: float = Field(default=0.8, ge=0.0, le=1.0)
     
-    @validator("subject", "predicate", "object")
+    @field_validator("subject", "predicate", "object")
+    @classmethod
     def validate_not_empty(cls, v):
         """Ensure fields are not just whitespace."""
         if not v.strip():

@@ -27,16 +27,16 @@ class Database:
                 max_size=10,
                 timeout=30
             )
-            print("✓ Database connection pool initialized")
+            print("[OK] Database connection pool initialized")
         except Exception as e:
-            print(f"✗ Failed to initialize database: {e}")
+            print(f"[ERROR] Failed to initialize database: {e}")
             raise
     
     def close(self):
         """Close database connection pool."""
         if self._pool:
             self._pool.close()
-            print("✓ Database connection pool closed")
+            print("[OK] Database connection pool closed")
     
     @contextmanager
     def get_connection(self) -> Generator[psycopg.Connection, None, None]:
