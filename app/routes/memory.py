@@ -17,7 +17,15 @@ from app.models import (
 )
 from app.auth.dependencies import get_current_user
 from app.middleware.rate_limiter import rate_limit_middleware
-from app.extraction.factory import get_extraction_provider, ExtractionError
+from app.extraction.factory import get_extraction_provider
+# Import ExtractionError from all providers so we catch the right one
+from app.extraction.providers.openai_provider import ExtractionError as OpenAIExtractionError
+from app.extraction.providers.gemini_provider import ExtractionError as GeminiExtractionError
+from app.extraction.providers.anthropic_provider import ExtractionError as AnthropicExtractionError
+from app.extraction.providers.local_provider import ExtractionError as LocalExtractionError
+
+# Combined tuple for catching any provider's ExtractionError
+ExtractionError = (OpenAIExtractionError, GeminiExtractionError, AnthropicExtractionError, LocalExtractionError)
 from app.memory.storage import (
     store_memories_batch,
     delete_memory,

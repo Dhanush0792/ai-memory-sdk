@@ -198,3 +198,175 @@ def get_system_stats(
         memory_count_per_user=[{"user_id": str(r["user_id"]), "count": r["count"]} for r in memory_breakdown],
         recent_logins_24h=recent_logins
     )
+
+
+# ── Audit Log Viewer ──
+@router.get("/audit-logs")
+def get_audit_logs(
+    request: Request,
+    action_type: str = None,
+    limit: int = 50,
+    skip: int = 0,
+    admin: dict = Depends(require_admin)
+):
+    """Get admin audit logs with optional filtering."""
+    check_admin_rate_limit(request)
+    
+    with db.get_cursor() as cur:
+        query = """
+            SELECT a.id, a.admin_id, a.action_type, a.target_user_id,
+                   a.timestamp, a.metadata,
+                   u1.email as admin_email,
+                   u2.email as target_email
+            FROM admin_audit_logs a
+            LEFT JOIN users u1 ON a.admin_id::text = u1.id::text
+            LEFT JOIN users u2 ON a.target_user_id::text = u2.id::text
+        """
+        params = []
+        
+        if action_type:
+            query += " WHERE a.action_type = %s"
+            params.append(action_type)
+        
+        query += " ORDER BY a.timestamp DESC LIMIT %s OFFSET %s"
+        params.extend([limit, skip])
+        
+        cur.execute(query, tuple(params))
+        logs = cur.fetchall()
+        
+        # Get total count
+        count_query = "SELECT COUNT(*) as total FROM admin_audit_logs"
+        if action_type:
+            count_query += " WHERE action_type = %s"
+            cur.execute(count_query, (action_type,))
+        else:
+            cur.execute(count_query)
+        total = cur.fetchone()["total"]
+    
+    return {
+        "logs": [
+            {
+                "id": str(log["id"]),
+                "admin_email": log["admin_email"] or "Unknown",
+                "action_type": log["action_type"],
+                "target_email": log["target_email"] or "N/A",
+                "timestamp": log["timestamp"].isoformat() if log["timestamp"] else None,
+                "metadata": log["metadata"]
+            }
+            for log in logs
+        ],
+        "total": total
+    }
+
+
+# ── Enable User ──
+@router.patch("/enable-user/{user_id}")
+def enable_user(
+    user_id: str,
+    request: Request,
+    admin: dict = Depends(require_admin)
+):
+    """Re-enable a disabled user account (Admin only)."""
+    check_admin_rate_limit(request)
+    
+    with db.get_cursor() as cur:
+        cur.execute("""
+            UPDATE users SET is_active = true
+            WHERE id = %s
+            RETURNING id, email
+        """, (user_id,))
+        
+        result = cur.fetchone()
+        if not result:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Audit Log
+        cur.execute("""
+            INSERT INTO admin_audit_logs (admin_id, action_type, target_user_id, metadata)
+            VALUES (%s, 'ENABLE_USER', %s, %s)
+        """, (
+            admin["id"],
+            user_id,
+            json.dumps({"email": result["email"]})
+        ))
+    
+    logger.info("admin_enable_user", admin=admin["id"], target_user=user_id)
+    return {"status": "success", "message": f"User {user_id} enabled"}
+
+
+# ── System Health ──
+@router.get("/system-health")
+def get_system_health(
+    request: Request,
+    admin: dict = Depends(require_admin)
+):
+    """Extended system health check (Admin only)."""
+    check_admin_rate_limit(request)
+    
+    health = {
+        "database": "unknown",
+        "tables": {},
+        "status": "operational"
+    }
+    
+    try:
+        db_ok = db.health_check()
+        health["database"] = "connected" if db_ok else "disconnected"
+        
+        if db_ok:
+            with db.get_cursor() as cur:
+                # Table row counts
+                for table in ["users", "memories", "audit_logs", "admin_audit_logs"]:
+                    try:
+                        cur.execute(f"SELECT COUNT(*) as count FROM {table}")
+                        health["tables"][table] = cur.fetchone()["count"]
+                    except Exception:
+                        health["tables"][table] = -1
+                
+                # Disabled users count
+                cur.execute("SELECT COUNT(*) as count FROM users WHERE is_active = false")
+                health["disabled_users"] = cur.fetchone()["count"]
+                
+                # Memories created today
+                cur.execute("""
+                    SELECT COUNT(*) as count FROM memories
+                    WHERE created_at > CURRENT_DATE
+                """)
+                health["memories_today"] = cur.fetchone()["count"]
+        
+        if not db_ok:
+            health["status"] = "degraded"
+    except Exception as e:
+        health["status"] = "error"
+        health["error"] = str(e)
+    
+    return health
+
+
+# ── User Search ──
+@router.get("/users/search")
+def search_users(
+    q: str,
+    request: Request,
+    admin: dict = Depends(require_admin)
+):
+    """Search users by email or name (Admin only)."""
+    check_admin_rate_limit(request)
+    
+    if len(q) < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="Query must be at least 2 characters"
+        )
+    
+    with db.get_cursor() as cur:
+        cur.execute("""
+            SELECT id, email, full_name, role, is_active, created_at, last_login_at
+            FROM users
+            WHERE email ILIKE %s OR full_name ILIKE %s
+            ORDER BY created_at DESC
+            LIMIT 20
+        """, (f"%{q}%", f"%{q}%"))
+        users = cur.fetchall()
+    
+    return users

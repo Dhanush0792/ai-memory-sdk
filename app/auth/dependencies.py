@@ -9,14 +9,21 @@ from app.database import db
 
 # ... (logger setup)
 
-# Security scheme
-security = HTTPBearer()
+# Security scheme - auto_error=False so we can return 401 instead of 403
+security = HTTPBearer(auto_error=False)
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
     Validate JWT token and query DB for user.
     Raises 401 if token is invalid, expired, user not found, or user is inactive.
     """
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     token = credentials.credentials
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

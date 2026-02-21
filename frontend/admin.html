@@ -4,201 +4,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - AI Memory SDK</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="static/css/style.css">
+    <title>Admin Console | AI Memory SDK</title>
+    <meta name="description"
+        content="Admin console for managing users, monitoring system health, and overseeing AI memories.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="static/css/admin-dashboard.css">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="static/css/components.css">
-    <link rel="stylesheet" href="static/css/animations.css">
-    <style>
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: #0f172a;
-            color: #fff;
-        }
-
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-        }
-
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .status-active {
-            background: rgba(34, 197, 94, 0.2);
-            color: #4ade80;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        .status-inactive {
-            background: rgba(239, 68, 68, 0.2);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .role-admin {
-            color: #c084fc;
-            font-weight: 600;
-        }
-
-        .role-user {
-            color: #94a3b8;
-        }
-    </style>
 </head>
 
-<body class="min-h-screen text-slate-200 selection:bg-indigo-500 selection:text-white">
+<body class="admin-body">
+    <div class="admin-grid-bg"></div>
 
-    <!-- Navbar -->
-    <nav class="fixed w-full z-50 glass-panel border-b border-white/5 px-6 py-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="flex items-center justify-center text-white">
-                    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                        <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                            <line x1="16" y1="6" x2="16" y2="16" />
-                            <line x1="6" y1="20" x2="26" y2="20" />
-                            <line x1="16" y1="16" x2="6" y2="20" />
-                            <line x1="16" y1="16" x2="26" y2="20" />
-                        </g>
-                        <circle cx="16" cy="6" r="3.2" fill="currentColor" />
-                        <circle cx="6" cy="20" r="3.2" fill="currentColor" />
-                        <circle cx="26" cy="20" r="3.2" fill="currentColor" />
-                    </svg>
-                </div>
-                <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                    Admin Console
-                </span>
-            </div>
-            <div class="flex items-center gap-4">
-                <span class="text-sm text-slate-400" id="adminEmail">Checking auth...</span>
-                <button id="logoutBtn" class="text-sm text-slate-300 hover:text-white transition-colors">Logout</button>
+    <!-- ── Navigation ── -->
+    <nav class="admin-nav">
+        <div class="admin-nav-inner">
+            <a href="index.html" class="admin-nav-brand">
+                <svg width="24" height="24" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <line x1="16" y1="6" x2="16" y2="16" />
+                        <line x1="6" y1="20" x2="26" y2="20" />
+                        <line x1="16" y1="16" x2="6" y2="20" />
+                        <line x1="16" y1="16" x2="26" y2="20" />
+                    </g>
+                    <circle cx="16" cy="6" r="3.2" fill="currentColor" />
+                    <circle cx="6" cy="20" r="3.2" fill="currentColor" />
+                    <circle cx="26" cy="20" r="3.2" fill="currentColor" />
+                </svg>
+                Admin Console
+                <span class="admin-badge">Admin</span>
+            </a>
+            <div class="admin-nav-right">
+                <span class="admin-nav-email" id="adminEmail">Loading...</span>
+                <button class="admin-btn-ghost" id="logoutBtn">Logout</button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="pt-24 pb-12 px-6 max-w-7xl mx-auto">
+    <!-- ── Main Content ── -->
+    <main class="admin-main">
+        <!-- Welcome -->
+        <div class="admin-welcome admin-anim">
+            <h1>Admin Console</h1>
+            <p>Manage users, monitor system health, and oversee all AI memory operations.</p>
+        </div>
 
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12" id="statsGrid">
-            <!-- Stats injected via JS -->
-            <div class="glass-panel p-6 animate-fade-in-up" style="animation-delay: 0.1s">
-                <div class="text-slate-400 text-sm mb-1">Total Users</div>
-                <div class="text-3xl font-bold text-white" id="statTotalUsers">-</div>
+        <!-- Stats Grid (6 cards) -->
+        <div class="admin-stats">
+            <div class="admin-stat admin-anim">
+                <div class="admin-stat-label">Total Users</div>
+                <div class="admin-stat-val" id="statTotalUsers">—</div>
             </div>
-            <div class="glass-panel p-6 animate-fade-in-up" style="animation-delay: 0.2s">
-                <div class="text-slate-400 text-sm mb-1">Active Users</div>
-                <div class="text-3xl font-bold text-emerald-400" id="statActiveUsers">-</div>
+            <div class="admin-stat admin-anim">
+                <div class="admin-stat-label">Active Users</div>
+                <div class="admin-stat-val" id="statActiveUsers">—</div>
             </div>
-            <div class="glass-panel p-6 animate-fade-in-up" style="animation-delay: 0.3s">
-                <div class="text-slate-400 text-sm mb-1">24h Logins</div>
-                <div class="text-3xl font-bold text-blue-400" id="statRecentLogins">-</div>
+            <div class="admin-stat admin-anim">
+                <div class="admin-stat-label">Total Memories</div>
+                <div class="admin-stat-val" id="statTotalMemories">—</div>
             </div>
-            <div class="glass-panel p-6 animate-fade-in-up flex items-center justify-center cursor-pointer hover:bg-white/5 transition-colors"
-                style="animation-delay: 0.4s" onclick="openCreateUserModal()">
-                <div class="text-center">
-                    <div
-                        class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-2">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                    </div>
-                    <div class="font-medium text-indigo-300">New User</div>
-                </div>
+            <div class="admin-stat admin-anim">
+                <div class="admin-stat-label">24h Logins</div>
+                <div class="admin-stat-val" id="statRecentLogins">—</div>
+            </div>
+            <div class="admin-stat admin-anim">
+                <div class="admin-stat-label">Disabled Users</div>
+                <div class="admin-stat-val" id="statDisabledUsers">—</div>
+            </div>
+            <div class="admin-stat admin-anim">
+                <div class="admin-stat-label">System Status</div>
+                <div class="admin-stat-val" id="statSystemStatus" style="font-size:1.1rem">—</div>
             </div>
         </div>
 
-        <!-- Users Table -->
-        <div class="glass-panel overflow-hidden animate-fade-in-up" style="animation-delay: 0.5s">
-            <div class="px-6 py-4 border-b border-white/5 flex justify-between items-center">
-                <h2 class="text-lg font-semibold text-white">User Management</h2>
-                <button onclick="loadUsers()" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-white/5">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <!-- Row 1: User Management + Create User -->
+        <div class="admin-panel admin-anim">
+            <div class="admin-panel-header">
+                <div class="admin-panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
                     </svg>
-                </button>
+                    User Management
+                </div>
+                <div class="admin-panel-actions">
+                    <button class="admin-btn-primary" id="createUserBtn" onclick="openCreateModal()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Create User
+                    </button>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+
+            <!-- Search & Filters -->
+            <div class="admin-search-bar">
+                <div class="admin-search-wrap">
+                    <svg class="admin-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="text" class="admin-search-input" id="userSearch"
+                        placeholder="Search by name or email...">
+                </div>
+                <button class="admin-btn-secondary active" data-filter="all" id="filterAll">All</button>
+                <button class="admin-btn-secondary" data-filter="active" id="filterActive">Active</button>
+                <button class="admin-btn-secondary" data-filter="disabled" id="filterDisabled">Disabled</button>
+            </div>
+
+            <!-- Users Table -->
+            <div class="admin-table-wrap">
+                <table class="admin-table">
                     <thead>
-                        <tr class="text-slate-400 text-sm border-b border-white/5 bg-white/5">
-                            <th class="px-6 py-3 font-medium">User</th>
-                            <th class="px-6 py-3 font-medium">Role</th>
-                            <th class="px-6 py-3 font-medium">Status</th>
-                            <th class="px-6 py-3 font-medium">Last Login</th>
-                            <th class="px-6 py-3 font-medium">Created</th>
-                            <th class="px-6 py-3 font-medium text-right">Actions</th>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Last Login</th>
+                            <th>Created</th>
+                            <th style="text-align:right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="usersTableBody" class="text-sm">
-                        <!-- Rows injected via JS -->
+                    <tbody id="usersTableBody">
                         <tr>
-                            <td colspan="5" class="px-6 py-8 text-center text-slate-500">Loading users...</td>
+                            <td colspan="6" class="admin-table-empty">Loading users...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
+        <!-- Row 2: Memory Overview + System Health -->
+        <div class="admin-row">
+            <!-- Memory Overview -->
+            <div class="admin-panel admin-anim">
+                <div class="admin-panel-header">
+                    <div class="admin-panel-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+                        </svg>
+                        Memory Overview
+                    </div>
+                    <span style="font-size:0.72rem;color:#52525B" id="memoryOverviewLabel">Per-user breakdown</span>
+                </div>
+                <div class="admin-panel-body" id="memoryBreakdown">
+                    <div style="color:#52525B;text-align:center;padding:2rem 0">Loading...</div>
+                </div>
+            </div>
+
+            <!-- System Health -->
+            <div class="admin-panel admin-anim">
+                <div class="admin-panel-header">
+                    <div class="admin-panel-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                        </svg>
+                        System Health
+                    </div>
+                    <button class="admin-btn-secondary" id="refreshHealthBtn" onclick="loadHealth()">Refresh</button>
+                </div>
+                <div class="admin-panel-body" id="healthBody">
+                    <div style="color:#52525B;text-align:center;padding:2rem 0">Loading health data...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Log -->
+        <div class="admin-panel admin-anim">
+            <div class="admin-panel-header">
+                <div class="admin-panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                    Audit Log
+                </div>
+                <div class="admin-panel-actions">
+                    <button class="admin-btn-secondary active" onclick="filterAudit('')" id="auditAll">All</button>
+                    <button class="admin-btn-secondary" onclick="filterAudit('CREATE_USER')"
+                        id="auditCreate">Created</button>
+                    <button class="admin-btn-secondary" onclick="filterAudit('DISABLE_USER')"
+                        id="auditDisable">Disabled</button>
+                    <button class="admin-btn-secondary" onclick="filterAudit('ENABLE_USER')"
+                        id="auditEnable">Enabled</button>
+                </div>
+            </div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Admin</th>
+                            <th>Target User</th>
+                            <th>Details</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody">
+                        <tr>
+                            <td colspan="5" class="admin-table-empty">Loading audit logs...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </main>
 
-    <!-- Create User Modal -->
-    <div id="createUserModal" class="fixed inset-0 z-[100] hidden">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeCreateUserModal()"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md">
-            <div class="glass-panel p-6 shadow-2xl border border-white/10">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-bold text-white">Create New User</h3>
-                    <button onclick="closeCreateUserModal()" class="text-slate-400 hover:text-white">&times;</button>
-                </div>
-
-                <form id="createUserForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Full Name</label>
-                        <input type="text" id="newFullName" required
-                            class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+    <!-- ── Create User Modal ── -->
+    <div class="admin-modal-overlay" id="createModal">
+        <div class="admin-modal">
+            <div class="admin-modal-header">
+                <h3 id="createModalTitle">Create New User</h3>
+                <button class="admin-modal-close" onclick="closeCreateModal()">&times;</button>
+            </div>
+            <div class="admin-modal-body" id="createModalBody">
+                <form id="createUserForm" onsubmit="handleCreateUser(event)">
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">Full Name</label>
+                        <input type="text" class="admin-form-input" id="newName" required placeholder="John Doe">
                     </div>
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Email Address</label>
-                        <input type="email" id="newEmail" required
-                            class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">Email Address</label>
+                        <input type="email" class="admin-form-input" id="newEmail" required
+                            placeholder="john@company.com">
                     </div>
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Password</label>
-                        <input type="password" id="newPassword" required minlength="8"
-                            class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">Password</label>
+                        <div style="display:flex;gap:0.5rem">
+                            <input type="text" class="admin-form-input" id="newPassword" required minlength="8"
+                                placeholder="Min 8 characters" style="flex:1">
+                            <button type="button" class="admin-btn-secondary" onclick="generatePassword()"
+                                style="white-space:nowrap">Generate</button>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm text-slate-400 mb-1">Role</label>
-                        <select id="newRole"
-                            class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-indigo-500">
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">Role</label>
+                        <select class="admin-form-select" id="newRole">
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
-
-                    <div class="pt-4 flex justify-end gap-3">
-                        <button type="button" onclick="closeCreateUserModal()"
-                            class="px-4 py-2 text-slate-300 hover:text-white transition-colors">Cancel</button>
-                        <button type="submit"
-                            class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20">
-                            Create User
-                        </button>
+                    <div class="admin-form-actions">
+                        <button type="button" class="admin-btn-secondary" onclick="closeCreateModal()">Cancel</button>
+                        <button type="submit" class="admin-btn-primary" id="createSubmitBtn">Create User</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- ── Credential Success Modal ── -->
+    <div class="admin-modal-overlay" id="credModal">
+        <div class="admin-modal" style="max-width:480px">
+            <div class="admin-modal-header">
+                <h3>✓ User Created</h3>
+                <button class="admin-modal-close" onclick="closeCredModal()">&times;</button>
+            </div>
+            <div class="admin-modal-body">
+                <div class="cred-success">
+                    <div class="cred-success-icon">✓</div>
+                    <p style="color:#A1A1AA;font-size:0.85rem;margin-bottom:1rem">Share these credentials with the
+                        customer:</p>
+                </div>
+                <div class="cred-card">
+                    <div class="cred-row">
+                        <span class="cred-label">Email</span>
+                        <span class="cred-value" id="credEmail">—</span>
+                        <button class="cred-copy-btn" onclick="copyField('credEmail', this)">Copy</button>
+                    </div>
+                    <div class="cred-row">
+                        <span class="cred-label">Password</span>
+                        <span class="cred-value" id="credPassword">—</span>
+                        <button class="cred-copy-btn" onclick="copyField('credPassword', this)">Copy</button>
+                    </div>
+                    <div class="cred-row">
+                        <span class="cred-label">Login URL</span>
+                        <span class="cred-value" id="credLoginUrl">—</span>
+                        <button class="cred-copy-btn" onclick="copyField('credLoginUrl', this)">Copy</button>
+                    </div>
+                </div>
+                <div class="admin-form-actions">
+                    <button class="admin-btn-secondary" onclick="copyAllCredentials()">Copy All</button>
+                    <button class="admin-btn-primary" onclick="closeCredModal()">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="admin-toast" id="toast"></div>
 
     <script src="static/js/admin.js"></script>
 </body>

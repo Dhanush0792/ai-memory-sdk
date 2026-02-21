@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | AI Memory SDK</title>
+    <meta name="description" content="Manage your AI memories, view insights, and control your data.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="static/css/user-dashboard.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+
+<body class="dash-body">
+    <div class="dash-grid-bg"></div>
+
+    <!-- ── Navigation ── -->
+    <nav class="dash-nav">
+        <div class="dash-nav-inner">
+            <a href="index.html" class="dash-nav-brand">
+                <svg width="24" height="24" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <line x1="16" y1="6" x2="16" y2="16" />
+                        <line x1="6" y1="20" x2="26" y2="20" />
+                        <line x1="16" y1="16" x2="6" y2="20" />
+                        <line x1="16" y1="16" x2="26" y2="20" />
+                    </g>
+                    <circle cx="16" cy="6" r="3.2" fill="currentColor" />
+                    <circle cx="6" cy="20" r="3.2" fill="currentColor" />
+                    <circle cx="26" cy="20" r="3.2" fill="currentColor" />
+                </svg>
+                AI Memory SDK
+            </a>
+            <div class="dash-nav-links">
+                <a href="user-dashboard.html" class="dash-nav-link active">Dashboard</a>
+                <a href="chat.html" class="dash-nav-link">Chat</a>
+            </div>
+            <div class="dash-nav-user">
+                <span class="dash-nav-email" id="userEmail">Loading...</span>
+                <button class="dash-btn-ghost" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ── Main Dashboard ── -->
+    <main class="dash-main">
+        <!-- Welcome -->
+        <div class="dash-welcome animate-in">
+            <h1 id="welcomeTitle">Welcome back</h1>
+            <p>Your AI memory overview — manage, explore, and control what the AI knows about you.</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="dash-stats">
+            <div class="dash-stat-card animate-in">
+                <div class="dash-stat-label">Total Memories</div>
+                <div class="dash-stat-value" id="statTotal">
+                    <div class="skeleton skeleton-stat"></div>
+                </div>
+                <div class="dash-stat-sub" id="statTotalSub">Loading...</div>
+            </div>
+            <div class="dash-stat-card animate-in">
+                <div class="dash-stat-label">Active Memories</div>
+                <div class="dash-stat-value" id="statActive">
+                    <div class="skeleton skeleton-stat"></div>
+                </div>
+                <div class="dash-stat-sub" id="statActiveSub">Loading...</div>
+            </div>
+            <div class="dash-stat-card animate-in">
+                <div class="dash-stat-label">Avg Confidence</div>
+                <div class="dash-stat-value" id="statConfidence">
+                    <div class="skeleton skeleton-stat"></div>
+                </div>
+                <div class="dash-stat-sub" id="statConfSub">Loading...</div>
+            </div>
+            <div class="dash-stat-card animate-in">
+                <div class="dash-stat-label">Memory Health</div>
+                <div class="dash-stat-value" id="statHealth">
+                    <div class="health-score-ring">
+                        <svg class="health-ring-svg" width="48" height="48" viewBox="0 0 48 48">
+                            <circle class="health-ring-track" cx="24" cy="24" r="20" />
+                            <circle class="health-ring-fill" id="healthRingFill" cx="24" cy="24" r="20" stroke="#A855F7"
+                                stroke-dasharray="125.66" stroke-dashoffset="125.66" />
+                        </svg>
+                        <div>
+                            <div class="health-score-num" id="healthNum">—</div>
+                            <div class="health-score-label">Score</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dash-stat-sub" id="statHealthSub">Computed from your data</div>
+            </div>
+        </div>
+
+        <!-- Row: Timeline + Heatmap -->
+        <div class="dash-row">
+            <!-- Memory Timeline -->
+            <div class="dash-panel animate-in">
+                <div class="dash-panel-header">
+                    <div class="dash-panel-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        </svg>
+                        Memory Timeline
+                    </div>
+                    <div class="dash-panel-actions">
+                        <span style="font-size:0.72rem;color:#52525B">Last 30 days</span>
+                    </div>
+                </div>
+                <div class="dash-panel-body" style="padding:0.75rem 1rem">
+                    <div class="timeline-container" id="timelineContainer">
+                        <svg class="timeline-svg" id="timelineSvg" preserveAspectRatio="none"></svg>
+                        <div class="timeline-tooltip" id="timelineTooltip"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confidence Heatmap -->
+            <div class="dash-panel animate-in">
+                <div class="dash-panel-header">
+                    <div class="dash-panel-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7" />
+                            <rect x="14" y="3" width="7" height="7" />
+                            <rect x="14" y="14" width="7" height="7" />
+                            <rect x="3" y="14" width="7" height="7" />
+                        </svg>
+                        Confidence Heatmap
+                    </div>
+                </div>
+                <div class="dash-panel-body">
+                    <div class="heatmap-grid" id="heatmapGrid">
+                        <div style="color:#52525B;font-size:0.85rem;grid-column:1/-1;text-align:center;padding:2rem 0">
+                            Loading...</div>
+                    </div>
+                    <div class="heatmap-legend">
+                        <span>Low</span>
+                        <div class="heatmap-legend-cell" style="background:rgba(239,68,68,0.6)"></div>
+                        <div class="heatmap-legend-cell" style="background:rgba(245,158,11,0.6)"></div>
+                        <div class="heatmap-legend-cell" style="background:rgba(79,142,247,0.6)"></div>
+                        <div class="heatmap-legend-cell" style="background:rgba(34,197,94,0.6)"></div>
+                        <span>High</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Knowledge Graph -->
+        <div class="dash-panel animate-in">
+            <div class="dash-panel-header">
+                <div class="dash-panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                    </svg>
+                    Knowledge Graph
+                </div>
+                <div class="dash-panel-actions">
+                    <span style="font-size:0.72rem;color:#52525B" id="graphNodeCount">Subjects & relationships</span>
+                </div>
+            </div>
+            <div class="dash-panel-body" style="padding:0">
+                <div class="graph-container" id="graphContainer">
+                    <canvas class="graph-canvas" id="graphCanvas"></canvas>
+                    <div class="graph-controls">
+                        <button class="graph-ctrl-btn" id="graphZoomIn" title="Zoom In">+</button>
+                        <button class="graph-ctrl-btn" id="graphZoomOut" title="Zoom Out">−</button>
+                        <button class="graph-ctrl-btn" id="graphReset" title="Reset">⟲</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Table -->
+        <div class="dash-panel animate-in">
+            <div class="dash-panel-header">
+                <div class="dash-panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                        <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                    All Memories
+                </div>
+                <div class="dash-panel-actions">
+                    <span style="font-size:0.78rem;color:#52525B" id="memoryTotalLabel">0 memories</span>
+                </div>
+            </div>
+
+            <!-- Search & Filters -->
+            <div class="dash-search-bar">
+                <div class="dash-search-wrap">
+                    <svg class="dash-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="text" class="dash-search-input" id="memorySearch"
+                        placeholder="Search memories — try &quot;What does AI know about my job?&quot;">
+                </div>
+                <button class="dash-filter-btn active" data-filter="all" id="filterAll">All</button>
+                <button class="dash-filter-btn" data-filter="high" id="filterHigh">High Confidence</button>
+                <button class="dash-filter-btn" data-filter="low" id="filterLow">Low Confidence</button>
+            </div>
+
+            <!-- Table -->
+            <div class="dash-table-wrap">
+                <table class="dash-table" id="memoryTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="subject">Subject ↕</th>
+                            <th data-sort="predicate">Predicate ↕</th>
+                            <th data-sort="object">Object ↕</th>
+                            <th data-sort="confidence">Confidence ↕</th>
+                            <th data-sort="version">Ver ↕</th>
+                            <th data-sort="created_at">Created ↕</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memoryTableBody">
+                        <tr>
+                            <td colspan="7" class="dash-table-empty">
+                                <p>Loading memories...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="dash-pagination">
+                <span id="paginationInfo">Showing 0 of 0</span>
+                <div class="dash-pagination-btns">
+                    <button class="dash-page-btn" id="prevPage" disabled>← Prev</button>
+                    <button class="dash-page-btn" id="nextPage" disabled>Next →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- GDPR Export -->
+        <div class="dash-panel animate-in">
+            <div class="dash-export-section">
+                <div class="dash-export-info">
+                    <div class="dash-export-title">🔒 Data Export (GDPR)</div>
+                    <div class="dash-export-desc">Download all your data — memories, versions, and activity — as a JSON
+                        file. Your data, your control.</div>
+                </div>
+                <button class="dash-btn-primary" id="exportBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Export All Data
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Version History Modal -->
+    <div class="dash-modal-overlay" id="modalOverlay">
+        <div class="dash-modal">
+            <div class="dash-modal-header">
+                <h3 id="modalTitle">Version History</h3>
+                <button class="dash-modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="dash-modal-body" id="modalBody">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="dash-toast" id="toast"></div>
+
+    <script src="static/js/user-dashboard.js"></script>
+</body>
+
+</html>

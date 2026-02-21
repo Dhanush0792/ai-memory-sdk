@@ -279,7 +279,7 @@
                 localStorage.setItem('token', data.access_token);
                 localStorage.setItem('role', data.role || 'user');
 
-                let redirectUrl = 'dashboard.html';
+                let redirectUrl = 'user-dashboard.html';
                 if (data.role === 'admin') {
                     redirectUrl = 'admin.html';
                 }

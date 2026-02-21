@@ -65,25 +65,30 @@ def log_action(
             if safe_metadata:
                 safe_metadata = json.dumps(safe_metadata)
         
-        with db.get_cursor() as cur:
-            cur.execute("""
-                INSERT INTO audit_logs (
-                    tenant_id, user_id, action_type, memory_id,
-                    api_key_hash, metadata, success, error_message
-                )
-                VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s, %s)
-            """, (
-                tenant_id,
-                user_id,
-                action_type,
-                memory_id,
-                api_key_hash,
-                safe_metadata,
-                success,
-                error_message
-            ))
-            
-            cur.connection.commit()
+        with db.get_connection() as conn:
+            with conn.cursor() as cur:
+                try:
+                    cur.execute("""
+                        INSERT INTO audit_logs (
+                            tenant_id, user_id, action_type, memory_id,
+                            api_key_hash, metadata, success, error_message
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s, %s)
+                    """, (
+                        tenant_id,
+                        user_id,
+                        action_type,
+                        memory_id,
+                        api_key_hash,
+                        safe_metadata,
+                        success,
+                        error_message
+                    ))
+                    conn.commit()
+                except Exception:
+                    # Rollback to prevent leaving connection in aborted state
+                    conn.rollback()
+                    raise
             
     except Exception as e:
         # Audit logging should never break the main operation

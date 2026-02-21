@@ -66,9 +66,11 @@ async def lifespan(app: FastAPI):
                         cur.execute(f.read())
                     logger.info("migrations_applied")
                 
-                # Ensure audit_logs table exists
+                # Ensure audit_logs table has correct schema
+                # Drop and recreate to fix schema mismatches
+                cur.execute("DROP TABLE IF EXISTS audit_logs CASCADE")
                 cur.execute("""
-                    CREATE TABLE IF NOT EXISTS audit_logs (
+                    CREATE TABLE audit_logs (
                         id SERIAL PRIMARY KEY,
                         tenant_id VARCHAR(255),
                         user_id VARCHAR(255),
