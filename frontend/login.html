@@ -166,10 +166,10 @@
         <div class="container">
             <a href="index.html" class="logo">AI Memory SDK</a>
             <div class="nav-links">
-                <a href="index.html#how-it-works">Architecture</a>
-                <a href="index.html#features">Features</a>
-                <a href="index.html#docs">Docs</a>
-                <a href="https://github.com/Dhanush0792/ai-memory-sdk" target="_blank" class="github-link">GitHub</a>
+                <a href="index.html#architecture">Architecture</a>
+                <a href="index.html#core-features">Features</a>
+                <a href="https://ai-memory-sdk.onrender.com/docs">Docs</a>
+                <a href="index.html">Home</a>
             </div>
         </div>
     </nav>
@@ -227,7 +227,7 @@
                 </div>
                 <div class="footer-links">
                     <a href="#">Documentation</a>
-                    <a href="https://github.com/Dhanush0792/ai-memory-sdk">GitHub</a>
+                    <a href="#">Security & Compliance</a>
                     <a href="#">API Reference</a>
                     <a href="#">Status</a>
                 </div>
@@ -256,8 +256,12 @@
             alertBox.className = 'alert';
 
             try {
-                // Determine API URL - adjust if you have a config handling this
-                const API_URL = window.location.hostname === 'localhost'
+                // Determine API URL 
+                const isLocal = window.location.hostname === 'localhost' ||
+                    window.location.hostname === '127.0.0.1' ||
+                    window.location.protocol === 'file:';
+
+                const API_URL = isLocal
                     ? 'http://localhost:8000/api/v1'
                     : 'https://ai-memory-sdk.onrender.com/api/v1';
 

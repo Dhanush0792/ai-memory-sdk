@@ -8,7 +8,7 @@ from app.auth.dependencies import require_admin
 from app.auth.utils import get_password_hash
 from app.observability import logger
 
-router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
+router = APIRouter(prefix="/admin", tags=["admin"])
 
 class UserCreate(BaseModel):
     full_name: str
@@ -16,8 +16,10 @@ class UserCreate(BaseModel):
     password: str
     role: str = "user"
 
+from uuid import UUID
+
 class UserResponse(BaseModel):
-    id: str
+    id: UUID
     email: str
     full_name: Optional[str]
     role: str
@@ -93,37 +95,44 @@ def create_user(
     """Create a new user manually (Admin only)."""
     check_admin_rate_limit(request)
     
-    with db.get_cursor() as cur:
-        # Check existing
-        cur.execute("SELECT id FROM users WHERE email = %s", (user.email,))
-        if cur.fetchone():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
-            )
-        
-        hashed_password = get_password_hash(user.password)
-        
-        cur.execute("""
-            INSERT INTO users (email, password_hash, full_name, role, is_active)
-            VALUES (%s, %s, %s, %s, true)
-            RETURNING id, email, full_name, role, is_active, created_at, last_login_at
-        """, (user.email, hashed_password, user.full_name, user.role))
-        
-        new_user = cur.fetchone()
-        
-        # Audit Log
-        cur.execute("""
-            INSERT INTO admin_audit_logs (admin_id, action_type, target_user_id, metadata)
-            VALUES (%s, 'CREATE_USER', %s, %s)
-        """, (
-            admin["id"], 
-            new_user["id"], 
-            json.dumps({"email": user.email, "role": user.role})
-        ))
-        
-        logger.info("admin_create_user", admin=admin["id"], new_user=user.email)
-        return new_user
+    try:
+        with db.get_cursor() as cur:
+            # Check existing
+            cur.execute("SELECT id FROM users WHERE email = %s", (user.email,))
+            if cur.fetchone():
+                logger.warning("admin_create_user_duplicate", email=user.email)
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email already registered"
+                )
+            
+            hashed_password = get_password_hash(user.password)
+            
+            cur.execute("""
+                INSERT INTO users (email, password_hash, full_name, role, is_active)
+                VALUES (%s, %s, %s, %s, true)
+                RETURNING id, email, full_name, role, is_active, created_at, last_login_at
+            """, (user.email, hashed_password, user.full_name, user.role))
+            
+            new_user = cur.fetchone()
+            
+            # Audit Log
+            cur.execute("""
+                INSERT INTO admin_audit_logs (admin_id, action_type, target_user_id, metadata)
+                VALUES (%s, 'CREATE_USER', %s, %s)
+            """, (
+                admin["id"], 
+                str(new_user["id"]), 
+                json.dumps({"email": user.email, "role": user.role})
+            ))
+            
+            logger.info("admin_create_user_success", admin=admin["id"], new_user=user.email)
+            return new_user
+    except Exception as e:
+        logger.error("admin_create_user_failed", error=str(e), admin_id=admin.get("id"))
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.patch("/disable-user/{user_id}")
 def disable_user(
