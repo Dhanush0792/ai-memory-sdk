@@ -20,6 +20,8 @@ from app.routes.admin import router as admin_router
 from app.models import HealthResponse
 from app.jobs import ttl_cleanup_job
 from app.observability import configure_logging, logger, system_info
+from fastapi.staticfiles import StaticFiles
+import os
 
 
 @asynccontextmanager
@@ -161,13 +163,24 @@ app = FastAPI(
 # ============================================================================
 
 # CORS (restricted origins, no wildcard)
+origins = settings.get_cors_origins_list()
+logger.info("cors_setup", origins=origins)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.get_cors_origins_list(),
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Debug middleware for Origin header
+@app.middleware("http")
+async def debug_origin(request: Request, call_next):
+    origin = request.headers.get("origin")
+    if origin:
+        logger.info("request_origin", method=request.method, path=request.url.path, origin=origin)
+    return await call_next(request)
 
 # Request size limit middleware
 @app.middleware("http")
@@ -193,6 +206,15 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(memory_router, prefix="/api/v1")
 app.include_router(chat_router, prefix="/api/v1")
 app.include_router(user_memory_router, prefix="/api/v1")
+app.include_router(admin_router, prefix="/api/v1")
+
+# Serve static files from frontend directory
+# This allows access via http://localhost:8000/ instead of file://
+frontend_dir = os.path.join(os.getcwd(), "frontend")
+if os.path.exists(frontend_dir):
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+else:
+    logger.warning("frontend_dir_not_found", path=frontend_dir)
 
 # ============================================================================
 # SYSTEM ENDPOINTS
