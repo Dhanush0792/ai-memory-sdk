@@ -45,6 +45,7 @@ WORKDIR /app
 # Copy application code
 COPY --chown=memoryapp:memoryapp app/ ./app/
 COPY --chown=memoryapp:memoryapp database/ ./database/
+COPY --chown=memoryapp:memoryapp frontend/ ./frontend/
 
 # Set environment variables
 ENV PATH="/opt/venv/bin:$PATH" \
