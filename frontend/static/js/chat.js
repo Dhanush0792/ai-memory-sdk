@@ -4,7 +4,7 @@
  */
 
 // Configuration
-const API_BASE_URL = window.location.origin;
+const API_BASE_URL = CONFIG.API_URL;
 const TENANT_ID = 'default-tenant';
 
 // State

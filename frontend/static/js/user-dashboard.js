@@ -4,7 +4,7 @@
  */
 
 // ── Config ──
-const API = window.location.origin;
+const API = CONFIG.API_URL;
 const TENANT = 'default-tenant';
 const PAGE_SIZE = 15;
 

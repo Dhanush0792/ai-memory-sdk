@@ -4,7 +4,7 @@
             credential provisioning, search/filter, toasts
    ============================================================ */
 
-const API = window.location.origin;
+const API = CONFIG.API_URL;
 let allUsers = [];
 let currentFilter = 'all';
 let searchTimeout = null;
