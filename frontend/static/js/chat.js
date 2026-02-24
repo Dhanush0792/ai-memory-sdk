@@ -112,7 +112,7 @@ async function sendMessage() {
     try {
         // Call chat API
         const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
+        const response = await fetch(`${API_BASE_URL}/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -198,7 +198,7 @@ function addMessage(role, content, metadata = null) {
 async function loadMemories() {
     try {
         const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_BASE_URL}/api/v1/user/memories?limit=100`, {
+        const response = await fetch(`${API_BASE_URL}/user/memories?limit=100`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'X-Tenant-ID': TENANT_ID
@@ -281,7 +281,7 @@ async function deleteMemory(memoryId) {
 
     try {
         const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_BASE_URL}/api/v1/user/memories/${memoryId}`, {
+        const response = await fetch(`${API_BASE_URL}/user/memories/${memoryId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`,

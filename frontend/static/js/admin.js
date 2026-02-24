@@ -50,7 +50,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 // ── API Helper ──
 async function adminFetch(endpoint, opts = {}) {
     const token = localStorage.getItem('token');
-    const res = await fetch(`${API}/api/v1/admin${endpoint}`, {
+    const res = await fetch(`${API}/admin${endpoint}`, {
         ...opts,
         headers: {
             'Authorization': `Bearer ${token}`,

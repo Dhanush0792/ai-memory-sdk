@@ -73,7 +73,7 @@ async function apiFetch(path, options = {}) {
 // ── Load Dashboard ──
 async function loadDashboard() {
     try {
-        const data = await apiFetch('/api/v1/user/memories?limit=500');
+        const data = await apiFetch('/user/memories?limit=500');
         allMemories = data.memories || [];
         filteredMemories = [...allMemories];
 
