@@ -197,6 +197,22 @@ async def limit_request_size(request: Request, call_next):
     response = await call_next(request)
     return response
 
+@app.middleware("http")
+async def normalize_api_paths(request: Request, call_next):
+    """
+    Middleware to handle redundant API prefixes (e.g., /api/v1/api/v1/...) 
+    that might be sent by cached frontend scripts.
+    """
+    path = request.url.path
+    if path.startswith("/api/v1/api/v1"):
+        new_path = path.replace("/api/v1/api/v1", "/api/v1", 1)
+        logger.info("normalizing_duplicated_prefix", original=path, normalized=new_path)
+        
+        # Update the scope to reflect the new path for the rest of the app
+        request.scope["path"] = new_path
+        
+    return await call_next(request)
+
 # ============================================================================
 # ROUTES
 # ============================================================================
