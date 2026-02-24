@@ -208,14 +208,6 @@ app.include_router(chat_router, prefix="/api/v1")
 app.include_router(user_memory_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 
-# Serve static files from frontend directory
-# This allows access via http://localhost:8000/ instead of file://
-frontend_dir = os.path.join(os.getcwd(), "frontend")
-if os.path.exists(frontend_dir):
-    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
-else:
-    logger.warning("frontend_dir_not_found", path=frontend_dir)
-
 # ============================================================================
 # SYSTEM ENDPOINTS
 # ============================================================================
@@ -268,6 +260,14 @@ async def metrics():
         content=generate_latest(),
         media_type=CONTENT_TYPE_LATEST
     )
+
+
+# Serve static files from frontend directory
+frontend_dir = os.path.join(os.getcwd(), "frontend")
+if os.path.exists(frontend_dir):
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+else:
+    logger.warning("frontend_dir_not_found", path=frontend_dir)
 
 
 # ============================================================================
