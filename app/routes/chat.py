@@ -26,7 +26,7 @@ from fastapi import Depends
 from app.middleware.rate_limiter import rate_limit_middleware
 
 
-router = APIRouter(prefix="/api/v1", tags=["chat"])
+router = APIRouter(tags=["chat"])
 
 
 class ChatRequest(BaseModel):

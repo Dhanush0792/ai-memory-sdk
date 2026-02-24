@@ -6,7 +6,7 @@ FastAPI application with RBAC, policies, TTL, observability, and model-agnostic 
 import asyncio
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, Response, FileResponse
 from contextlib import asynccontextmanager
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
@@ -262,12 +262,55 @@ async def metrics():
     )
 
 
-# Serve static files from frontend directory
-frontend_dir = os.path.join(os.getcwd(), "frontend")
-if os.path.exists(frontend_dir):
-    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+# ============================================================================
+# FRONTEND ROUTES
+# ============================================================================
+
+@app.get("/", tags=["Frontend"])
+async def serve_index():
+    return FileResponse("frontend/index.html")
+
+@app.get("/login", tags=["Frontend"])
+async def serve_login():
+    return FileResponse("frontend/login.html")
+
+@app.get("/login.html", tags=["Frontend"], include_in_schema=False)
+async def serve_login_html():
+    return FileResponse("frontend/login.html")
+
+@app.get("/admin", tags=["Frontend"])
+async def serve_admin():
+    return FileResponse("frontend/admin.html")
+
+@app.get("/admin.html", tags=["Frontend"], include_in_schema=False)
+async def serve_admin_html():
+    return FileResponse("frontend/admin.html")
+
+@app.get("/user-dashboard", tags=["Frontend"])
+async def serve_user_dashboard():
+    return FileResponse("frontend/user-dashboard.html")
+
+@app.get("/user-dashboard.html", tags=["Frontend"], include_in_schema=False)
+async def serve_user_dashboard_html():
+    return FileResponse("frontend/user-dashboard.html")
+
+@app.get("/chat", tags=["Frontend"])
+async def serve_chat():
+    return FileResponse("frontend/chat.html")
+
+@app.get("/chat.html", tags=["Frontend"], include_in_schema=False)
+async def serve_chat_html():
+    return FileResponse("frontend/chat.html")
+
+@app.get("/favicon.svg", tags=["Frontend"], include_in_schema=False)
+async def serve_favicon():
+    return FileResponse("frontend/favicon.svg")
+
+# Serve static files (JS, CSS) from frontend/static directory
+if os.path.exists("frontend/static"):
+    app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 else:
-    logger.warning("frontend_dir_not_found", path=frontend_dir)
+    logger.warning("frontend_static_dir_not_found")
 
 
 # ============================================================================
