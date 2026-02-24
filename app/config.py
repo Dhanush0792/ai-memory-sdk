@@ -114,9 +114,10 @@ class Settings(BaseSettings):
         # Enforce SSL for production
         env = info.data.get("environment", "production")
         if env == "production" and "sslmode=require" not in v and "sslmode=verify" not in v:
-             # Log warning or raise error. Prompt says "Log warning or raise startup error".
-             # We will raise error for "infrastructure-grade production correct".
-             raise ValueError("Production DATABASE_URL must contain 'sslmode=require'")
+            # Auto-append sslmode=require to avoid manual config friction
+            separator = "&" if "?" in v else "?"
+            new_v = f"{v}{separator}sslmode=require"
+            return new_v
              
         return v
     
